@@ -163,7 +163,7 @@ public actual class Socket internal constructor(
             val newFd = result.asDynamic().fd as Int
 
             // TODO: Properly parse address from result.address
-            val storage = io.github.kotlinmania.libc.unix.linuxlike.SockaddrStorage(
+            val storage = SockaddrStorage(
                 ssFamily = 2u.toUShort(),
                 padding = ByteArray(126)
             )

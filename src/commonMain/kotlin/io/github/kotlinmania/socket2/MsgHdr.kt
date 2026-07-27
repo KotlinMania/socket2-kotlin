@@ -1,8 +1,6 @@
 // port-lint: source lib.rs
 package io.github.kotlinmania.socket2
 
-import io.github.kotlinmania.libc.musl.sys.Msghdr
-
 /**
  * Configuration of a `sendmsg(2)` system call.
  *
@@ -55,7 +53,7 @@ public class MsgHdr private constructor(
     public fun withBuffers(bufs: List<ByteArray>): MsgHdr {
         val current = inner ?: throw IllegalStateException("MsgHdr already consumed")
         val iovecs = bufs.map { buf ->
-            io.github.kotlinmania.libc.musl.sys.Iovec(
+            Iovec(
                 iovBase = buf,
                 iovLen = buf.size.toULong()
             )

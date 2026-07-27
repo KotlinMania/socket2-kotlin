@@ -1,9 +1,6 @@
 // port-lint: source sockaddr.rs
 package io.github.kotlinmania.socket2
 
-import io.github.kotlinmania.libc.*
-import io.github.kotlinmania.libc.unix.linuxlike.*
-
 /**
  * Platform-specific implementation of SockAddr for macOS ARM64.
  */

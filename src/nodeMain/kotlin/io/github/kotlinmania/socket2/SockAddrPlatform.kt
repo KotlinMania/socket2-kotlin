@@ -27,7 +27,7 @@ internal actual fun SockAddr.asSocketPlatform(): Socket2SocketAddress? {
 public actual fun Socket2SocketAddress.toSockAddr(): SockAddr {
     return when (this) {
         is Socket2SocketAddress.V4 -> {
-            val storage = io.github.kotlinmania.libc.unix.linuxlike.SockaddrStorage(
+            val storage = SockaddrStorage(
                 ssFamily = 2u.toUShort(), // AF_INET
                 padding = ByteArray(126)
             )
@@ -35,7 +35,7 @@ public actual fun Socket2SocketAddress.toSockAddr(): SockAddr {
             SockAddr.new(sockAddrStorage, 16u)
         }
         is Socket2SocketAddress.V6 -> {
-            val storage = io.github.kotlinmania.libc.unix.linuxlike.SockaddrStorage(
+            val storage = SockaddrStorage(
                 ssFamily = 30u.toUShort(), // AF_INET6
                 padding = ByteArray(126)
             )
