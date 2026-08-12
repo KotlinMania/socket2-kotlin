@@ -3,7 +3,6 @@ package io.github.kotlinmania.socket2
 import kotlin.test.Test
 
 class TypeConversionTest {
-
     @Test
     fun testUShortArrayBitShift() {
         println("\n=== UShortArray Bit Shift Test ===")
@@ -48,13 +47,13 @@ class TypeConversionTest {
         println("bytes[0].toInt() type: ${asInt::class.simpleName}")
 
         // Bit operations force Int conversion
-        val shifted: Int = bytes[0].toInt() and 0xFF  // THIS is the implicit conversion!
+        val shifted: Int = bytes[0].toInt() and 0xFF // THIS is the implicit conversion!
         println("Type after 'and 0xFF': ${shifted::class.simpleName}")
 
         // Even just accessing requires masking because of sign extension
-        val b: Byte = 0xFF.toByte()  // -1 as signed byte
-        val asIntSigned: Int = b.toInt()  // -1 as signed int
-        val asIntUnsigned: Int = b.toInt() and 0xFF  // 255 as unsigned
+        val b: Byte = 0xFF.toByte() // -1 as signed byte
+        val asIntSigned: Int = b.toInt() // -1 as signed int
+        val asIntUnsigned: Int = b.toInt() and 0xFF // 255 as unsigned
 
         println("Byte 0xFF as signed Int: $asIntSigned")
         println("Byte 0xFF with 'and 0xFF': $asIntUnsigned")
@@ -68,15 +67,15 @@ class TypeConversionTest {
         // UShortArray: type-safe, no conversions
         val ushorts: UShortArray = UShortArray(2)
         val value1: UShort = 0x1234u.toUShort()
-        ushorts[0] = value1  // Direct assignment, no conversion
-        val retrieved1: UShort = ushorts[0]  // Direct retrieval, no conversion
+        ushorts[0] = value1 // Direct assignment, no conversion
+        val retrieved1: UShort = ushorts[0] // Direct retrieval, no conversion
         println("UShort roundtrip: stored=$value1, retrieved=$retrieved1, same=${value1 == retrieved1}")
 
         // ByteArray: requires conversions for any bit operations
         val bytes: ByteArray = ByteArray(2)
         val value2: Byte = 0x12.toByte()
-        bytes[0] = value2  // Direct assignment OK
-        val retrieved2: Byte = bytes[0]  // Direct retrieval OK
+        bytes[0] = value2 // Direct assignment OK
+        val retrieved2: Byte = bytes[0] // Direct retrieval OK
 
         // But combining two bytes into a short requires Int!
         val combined: Int = (bytes[0].toInt() and 0xFF) or ((bytes[1].toInt() and 0xFF) shl 8)
