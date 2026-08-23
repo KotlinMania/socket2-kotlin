@@ -15,7 +15,7 @@ public class MaybeUninitSlice(
     /**
      * The underlying byte buffer.
      */
-    public val buffer: ByteArray
+    public val buffer: ByteArray,
 ) {
     /**
      * Creates a new `MaybeUninitSlice` wrapping a byte array.

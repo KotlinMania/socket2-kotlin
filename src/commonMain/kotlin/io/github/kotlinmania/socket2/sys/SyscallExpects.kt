@@ -1,12 +1,14 @@
 // port-lint: source sys/unix.rs
 package io.github.kotlinmania.socket2.sys
 
-import io.github.kotlinmania.socket2.*
+import io.github.kotlinmania.socket2.SockAddr
 
 /**
  * Raw socket file descriptor type.
  */
-internal expect value class RawSocket(val fd: Int)
+internal expect value class RawSocket(
+    val fd: Int,
+)
 
 // Shutdown constants
 internal expect val SHUT_RD: Int

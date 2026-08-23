@@ -21,17 +21,19 @@ public actual fun sockAddrUnix(path: String): Result<SockAddr> {
     pathBytes.copyInto(sunPath, 0, 0, pathBytes.size)
     // null terminator is already there from ByteArray initialization
 
-    val sockaddrUn = SockaddrUn(
-        sunFamily = AF_UNIX.toUShort(),
-        sunPath = sunPath
-    )
+    val sockaddrUn =
+        SockaddrUn(
+            sunFamily = AF_UNIX.toUShort(),
+            sunPath = sunPath,
+        )
 
     // Convert to SockaddrStorage
     // This is a simplified conversion - in real implementation would need proper memory layout
-    val storage = SockaddrStorage(
-        ssFamily = AF_UNIX.toUShort(),
-        padding = sunPath + ByteArray(126 - 108) // Pad to full storage size
-    )
+    val storage =
+        SockaddrStorage(
+            ssFamily = AF_UNIX.toUShort(),
+            padding = sunPath + ByteArray(126 - 108), // Pad to full storage size
+        )
 
     val length = (2 + pathBytes.size + 1).toUInt() // family (2) + path + null terminator
     return Result.success(SockAddr(storage, length))
@@ -57,7 +59,7 @@ internal actual fun SockAddr.asSocketPlatform(): Socket2SocketAddress? {
 
             Socket2SocketAddress.V4(
                 address = "$addr1.$addr2.$addr3.$addr4",
-                port = port
+                port = port,
             )
         }
         isIpv6() -> {
@@ -69,34 +71,38 @@ internal actual fun SockAddr.asSocketPlatform(): Socket2SocketAddress? {
             val port = ((padding[0].toUByte().toInt() shl 8) or padding[1].toUByte().toInt())
             val flowInfo = (
                 (padding[2].toUByte().toUInt() shl 24) or
-                (padding[3].toUByte().toUInt() shl 16) or
-                (padding[4].toUByte().toUInt() shl 8) or
-                padding[5].toUByte().toUInt()
+                    (padding[3].toUByte().toUInt() shl 16) or
+                    (padding[4].toUByte().toUInt() shl 8) or
+                    padding[5].toUByte().toUInt()
             )
 
             // Extract 16-byte IPv6 address
             val addrBytes = padding.copyOfRange(6, 22)
-            val scopeId = if (padding.size >= 26) {
-                (padding[22].toUByte().toUInt() shl 24) or
-                (padding[23].toUByte().toUInt() shl 16) or
-                (padding[24].toUByte().toUInt() shl 8) or
-                padding[25].toUByte().toUInt()
-            } else 0u
+            val scopeId =
+                if (padding.size >= 26) {
+                    (padding[22].toUByte().toUInt() shl 24) or
+                        (padding[23].toUByte().toUInt() shl 16) or
+                        (padding[24].toUByte().toUInt() shl 8) or
+                        padding[25].toUByte().toUInt()
+                } else {
+                    0u
+                }
 
             // Format IPv6 address as string
-            val address = buildString {
-                for (i in 0 until 16 step 2) {
-                    if (i > 0) append(':')
-                    val word = ((addrBytes[i].toUByte().toInt() shl 8) or addrBytes[i+1].toUByte().toInt())
-                    append(word.toString(16))
+            val address =
+                buildString {
+                    for (i in 0 until 16 step 2) {
+                        if (i > 0) append(':')
+                        val word = ((addrBytes[i].toUByte().toInt() shl 8) or addrBytes[i + 1].toUByte().toInt())
+                        append(word.toString(16))
+                    }
                 }
-            }
 
             Socket2SocketAddress.V6(
                 address = address,
                 port = port,
                 flow = flowInfo,
-                scope = scopeId
+                scope = scopeId,
             )
         }
         else -> null
@@ -106,8 +112,8 @@ internal actual fun SockAddr.asSocketPlatform(): Socket2SocketAddress? {
 /**
  * Converts a Socket2SocketAddress to a SockAddr.
  */
-public actual fun Socket2SocketAddress.toSockAddr(): SockAddr {
-    return when (this) {
+public actual fun Socket2SocketAddress.toSockAddr(): SockAddr =
+    when (this) {
         is Socket2SocketAddress.V4 -> {
             // Parse IPv4 address string
             val parts = address.split('.')
@@ -127,10 +133,11 @@ public actual fun Socket2SocketAddress.toSockAddr(): SockAddr {
             padding[5] = bytes[3].toByte()
             // sin_zero is already zeros
 
-            val storage = SockaddrStorage(
-                ssFamily = AF_INET.toUShort(),
-                padding = padding
-            )
+            val storage =
+                SockaddrStorage(
+                    ssFamily = AF_INET.toUShort(),
+                    padding = padding,
+                )
 
             val length = 16u // sizeof(sockaddr_in)
             SockAddr(storage, length)
@@ -166,13 +173,13 @@ public actual fun Socket2SocketAddress.toSockAddr(): SockAddr {
             padding[24] = (scope shr 8).toByte()
             padding[25] = scope.toByte()
 
-            val storage = SockaddrStorage(
-                ssFamily = AF_INET6.toUShort(),
-                padding = padding
-            )
+            val storage =
+                SockaddrStorage(
+                    ssFamily = AF_INET6.toUShort(),
+                    padding = padding,
+                )
 
             val length = 28u // sizeof(sockaddr_in6)
             SockAddr(storage, length)
         }
     }
-}

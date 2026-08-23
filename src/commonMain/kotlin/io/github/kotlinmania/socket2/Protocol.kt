@@ -8,7 +8,9 @@ package io.github.kotlinmania.socket2
  *
  * This type is freely interconvertible with Int.
  */
-public data class Protocol(public val value: Int) {
+public data class Protocol(
+    public val value: Int,
+) {
     public companion object {
         /**
          * Protocol corresponding to `ICMPv4`.

@@ -1,10 +1,33 @@
 // port-lint: source sys/unix.rs
 package io.github.kotlinmania.socket2.sys
 
-import io.github.kotlinmania.socket2.*
-import io.github.kotlinmania.socket2.cinterop.*
-import kotlinx.cinterop.*
-import kotlin.experimental.ExperimentalNativeApi
+import io.github.kotlinmania.socket2.SockAddr
+import io.github.kotlinmania.socket2.SockAddrStorage
+import io.github.kotlinmania.socket2.SockaddrStorage
+import io.github.kotlinmania.socket2.cinterop.socket2_accept
+import io.github.kotlinmania.socket2.cinterop.socket2_addr_storage_free
+import io.github.kotlinmania.socket2.cinterop.socket2_addr_storage_get_family
+import io.github.kotlinmania.socket2.cinterop.socket2_addr_storage_new
+import io.github.kotlinmania.socket2.cinterop.socket2_addr_storage_set_family
+import io.github.kotlinmania.socket2.cinterop.socket2_bind
+import io.github.kotlinmania.socket2.cinterop.socket2_close
+import io.github.kotlinmania.socket2.cinterop.socket2_connect
+import io.github.kotlinmania.socket2.cinterop.socket2_get_errno
+import io.github.kotlinmania.socket2.cinterop.socket2_get_error_string
+import io.github.kotlinmania.socket2.cinterop.socket2_listen
+import io.github.kotlinmania.socket2.cinterop.socket2_recv
+import io.github.kotlinmania.socket2.cinterop.socket2_send
+import io.github.kotlinmania.socket2.cinterop.socket2_shutdown
+import io.github.kotlinmania.socket2.cinterop.socket2_socket
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.UIntVar
+import kotlinx.cinterop.addressOf
+import kotlinx.cinterop.alloc
+import kotlinx.cinterop.memScoped
+import kotlinx.cinterop.ptr
+import kotlinx.cinterop.toKString
+import kotlinx.cinterop.usePinned
+import kotlinx.cinterop.value
 
 /**
  * Native platform actual implementation using C++ wrapper via cinterop.
@@ -12,7 +35,9 @@ import kotlin.experimental.ExperimentalNativeApi
  */
 
 // Raw socket FD value class
-internal actual value class RawSocket(actual val fd: Int)
+internal actual value class RawSocket(
+    actual val fd: Int,
+)
 
 // Shutdown constants
 internal actual val SHUT_RD: Int = 0
@@ -94,34 +119,36 @@ internal actual fun listen(fd: RawSocket, backlog: Int): Result<Unit> {
 }
 
 @OptIn(ExperimentalForeignApi::class)
-internal actual fun accept(fd: RawSocket): Result<Pair<RawSocket, SockAddr>> = memScoped {
-    val storage = socket2_addr_storage_new() ?: return Result.failure(IOException("Failed to allocate address storage"))
+internal actual fun accept(fd: RawSocket): Result<Pair<RawSocket, SockAddr>> =
+    memScoped {
+        val storage = socket2_addr_storage_new() ?: return Result.failure(IOException("Failed to allocate address storage"))
 
-    try {
-        val addrLen = alloc<UIntVar>()
-        addrLen.value = 128u
+        try {
+            val addrLen = alloc<UIntVar>()
+            addrLen.value = 128u
 
-        val newFd = socket2_accept(fd.fd, storage, addrLen.ptr)
+            val newFd = socket2_accept(fd.fd, storage, addrLen.ptr)
 
-        if (newFd == -1) {
-            val errnoVal = socket2_get_errno()
-            val errMsg = socket2_get_error_string(errnoVal)?.toKString() ?: "Unknown error (errno=$errnoVal)"
-            Result.failure(IOException("accept() failed: $errMsg"))
-        } else {
-            // Extract family and convert to SockAddr
-            val family = socket2_addr_storage_get_family(storage)
-            val kotlinStorage = SockaddrStorage(
-                ssFamily = family,
-                padding = ByteArray(126)  // TODO: Extract full address data
-            )
-            val sockAddrStorage = SockAddrStorage(kotlinStorage)
-            val addr = SockAddr.new(sockAddrStorage, addrLen.value)
-            Result.success(Pair(RawSocket(newFd), addr))
+            if (newFd == -1) {
+                val errnoVal = socket2_get_errno()
+                val errMsg = socket2_get_error_string(errnoVal)?.toKString() ?: "Unknown error (errno=$errnoVal)"
+                Result.failure(IOException("accept() failed: $errMsg"))
+            } else {
+                // Extract family and convert to SockAddr
+                val family = socket2_addr_storage_get_family(storage)
+                val kotlinStorage =
+                    SockaddrStorage(
+                        ssFamily = family,
+                        padding = ByteArray(126), // TODO: Extract full address data
+                    )
+                val sockAddrStorage = SockAddrStorage(kotlinStorage)
+                val addr = SockAddr.new(sockAddrStorage, addrLen.value)
+                Result.success(Pair(RawSocket(newFd), addr))
+            }
+        } finally {
+            socket2_addr_storage_free(storage)
         }
-    } finally {
-        socket2_addr_storage_free(storage)
     }
-}
 
 @OptIn(ExperimentalForeignApi::class)
 internal actual fun shutdown(fd: RawSocket, how: Int): Result<Unit> {
@@ -136,8 +163,8 @@ internal actual fun shutdown(fd: RawSocket, how: Int): Result<Unit> {
 }
 
 @OptIn(ExperimentalForeignApi::class, ExperimentalUnsignedTypes::class)
-internal actual fun recv(fd: RawSocket, buffer: ByteArray, flags: Int): Result<Int> {
-    return buffer.usePinned { pinned ->
+internal actual fun recv(fd: RawSocket, buffer: ByteArray, flags: Int): Result<Int> =
+    buffer.usePinned { pinned ->
         val bytesRead = socket2_recv(fd.fd, pinned.addressOf(0), buffer.size.toULong(), flags).toInt()
         if (bytesRead == -1) {
             val errnoVal = socket2_get_errno()
@@ -147,11 +174,10 @@ internal actual fun recv(fd: RawSocket, buffer: ByteArray, flags: Int): Result<I
             Result.success(bytesRead)
         }
     }
-}
 
 @OptIn(ExperimentalForeignApi::class, ExperimentalUnsignedTypes::class)
-internal actual fun send(fd: RawSocket, buffer: ByteArray, flags: Int): Result<Int> {
-    return buffer.usePinned { pinned ->
+internal actual fun send(fd: RawSocket, buffer: ByteArray, flags: Int): Result<Int> =
+    buffer.usePinned { pinned ->
         val bytesSent = socket2_send(fd.fd, pinned.addressOf(0), buffer.size.toULong(), flags).toInt()
         if (bytesSent == -1) {
             val errnoVal = socket2_get_errno()
@@ -161,7 +187,6 @@ internal actual fun send(fd: RawSocket, buffer: ByteArray, flags: Int): Result<I
             Result.success(bytesSent)
         }
     }
-}
 
 @OptIn(ExperimentalForeignApi::class)
 internal actual fun close(fd: RawSocket): Result<Unit> {
@@ -175,4 +200,6 @@ internal actual fun close(fd: RawSocket): Result<Unit> {
     }
 }
 
-class IOException(message: String) : Exception(message)
+class IOException(
+    message: String,
+) : Exception(message)
