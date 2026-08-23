@@ -1,7 +1,7 @@
 // port-lint: source sys/unix.rs
 package io.github.kotlinmania.socket2.sys
 
-import io.github.kotlinmania.socket2.*
+import io.github.kotlinmania.socket2.SockAddr
 
 internal actual value class RawSocket actual constructor(actual val fd: Int)
 

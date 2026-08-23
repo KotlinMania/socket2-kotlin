@@ -9,7 +9,9 @@ package io.github.kotlinmania.socket2
  *
  * This type is freely interconvertible with Int.
  */
-public data class Domain(public val value: Int) {
+public data class Domain(
+    public val value: Int,
+) {
     public companion object {
         /**
          * Domain for IPv4 communication, corresponding to `AF_INET`.
@@ -29,10 +31,11 @@ public data class Domain(public val value: Int) {
         /**
          * Returns the correct domain for [address].
          */
-        public fun forAddress(address: Socket2SocketAddress): Domain = when (address) {
-            is Socket2SocketAddress.V4 -> IPV4
-            is Socket2SocketAddress.V6 -> IPV6
-        }
+        public fun forAddress(address: Socket2SocketAddress): Domain =
+            when (address) {
+                is Socket2SocketAddress.V4 -> IPV4
+                is Socket2SocketAddress.V6 -> IPV6
+            }
     }
 }
 

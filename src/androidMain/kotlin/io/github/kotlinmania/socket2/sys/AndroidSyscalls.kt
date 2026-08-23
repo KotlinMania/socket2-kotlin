@@ -1,10 +1,12 @@
 // port-lint: source sys/unix.rs
 package io.github.kotlinmania.socket2.sys
 
-import io.github.kotlinmania.socket2.*
+import io.github.kotlinmania.socket2.SockAddr
 
 @JvmInline
-internal actual value class RawSocket actual constructor(actual val fd: Int)
+internal actual value class RawSocket actual constructor(
+    actual val fd: Int,
+)
 
 internal actual val SHUT_RD: Int = 0
 internal actual val SHUT_WR: Int = 1

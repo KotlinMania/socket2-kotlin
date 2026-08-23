@@ -18,20 +18,19 @@ public typealias SaFamilyT = CUShort
  * See the documentation of [SockAddr.new] for examples.
  */
 public data class SockAddrStorage(
-    internal val storage: SockaddrStorage
+    internal val storage: SockaddrStorage,
 ) {
     public companion object {
         /**
          * Construct a new storage containing all zeros.
          */
-        public fun zeroed(): SockAddrStorage {
-            return SockAddrStorage(
+        public fun zeroed(): SockAddrStorage =
+            SockAddrStorage(
                 SockaddrStorage(
                     ssFamily = 0u,
-                    padding = ByteArray(126) // Platform-specific size
-                )
+                    padding = ByteArray(126), // Platform-specific size
+                ),
             )
-        }
     }
 
     /**
@@ -52,7 +51,7 @@ public data class SockAddrStorage(
 @ConsistentCopyVisibility
 public data class SockAddr internal constructor(
     internal val storage: SockaddrStorage,
-    private val length: SocklenT
+    private val length: SocklenT,
 ) {
     public companion object {
         /**
@@ -65,60 +64,44 @@ public data class SockAddr internal constructor(
          * the storage must be initialized appropriately for IPv4, setting the content
          * and length correctly.
          */
-        public fun new(storage: SockAddrStorage, len: SocklenT): SockAddr {
-            return SockAddr(storage.storage, len)
-        }
+        public fun new(storage: SockAddrStorage, len: SocklenT): SockAddr = SockAddr(storage.storage, len)
     }
 
     /**
      * Returns this address's family.
      */
-    public fun family(): SaFamilyT {
-        return storage.ssFamily
-    }
+    public fun family(): SaFamilyT = storage.ssFamily
 
     /**
      * Returns this address's [Domain].
      */
-    public fun domain(): Domain {
-        return Domain(storage.ssFamily.toInt())
-    }
+    public fun domain(): Domain = Domain(storage.ssFamily.toInt())
 
     /**
      * Returns the size of this address in bytes.
      */
-    public fun len(): SocklenT {
-        return length
-    }
+    public fun len(): SocklenT = length
 
     /**
      * Returns the address as the storage.
      */
-    public fun asStorage(): SockAddrStorage {
-        return SockAddrStorage(storage)
-    }
+    public fun asStorage(): SockAddrStorage = SockAddrStorage(storage)
 
     /**
      * Returns true if this address is in the `AF_INET` (IPv4) family, false otherwise.
      */
-    public fun isIpv4(): Boolean {
-        return storage.ssFamily == AF_INET.toUShort()
-    }
+    public fun isIpv4(): Boolean = storage.ssFamily == AF_INET.toUShort()
 
     /**
      * Returns true if this address is in the `AF_INET6` (IPv6) family, false otherwise.
      */
-    public fun isIpv6(): Boolean {
-        return storage.ssFamily == AF_INET6.toUShort()
-    }
+    public fun isIpv6(): Boolean = storage.ssFamily == AF_INET6.toUShort()
 
     /**
      * Returns true if this address is of a unix socket (for local interprocess communication),
      * i.e. it is from the `AF_UNIX` family, false otherwise.
      */
-    public fun isUnix(): Boolean {
-        return storage.ssFamily == AF_UNIX.toUShort()
-    }
+    public fun isUnix(): Boolean = storage.ssFamily == AF_UNIX.toUShort()
 
     /**
      * Converts this address to a [Socket2SocketAddress] if it is in the `AF_INET` (IPv4)
@@ -127,33 +110,27 @@ public data class SockAddr internal constructor(
      * This requires platform-specific implementation to extract the address details
      * from the underlying storage.
      */
-    public fun asSocket(): Socket2SocketAddress? {
-        return asSocketPlatform()
-    }
+    public fun asSocket(): Socket2SocketAddress? = asSocketPlatform()
 
     /**
      * Converts this address to a [Socket2SocketAddress.V4] if it is in the `AF_INET` family.
      */
-    public fun asSocketIpv4(): Socket2SocketAddress.V4? {
-        return when (val addr = asSocket()) {
+    public fun asSocketIpv4(): Socket2SocketAddress.V4? =
+        when (val addr = asSocket()) {
             is Socket2SocketAddress.V4 -> addr
             else -> null
         }
-    }
 
     /**
      * Converts this address to a [Socket2SocketAddress.V6] if it is in the `AF_INET6` family.
      */
-    public fun asSocketIpv6(): Socket2SocketAddress.V6? {
-        return when (val addr = asSocket()) {
+    public fun asSocketIpv6(): Socket2SocketAddress.V6? =
+        when (val addr = asSocket()) {
             is Socket2SocketAddress.V6 -> addr
             else -> null
         }
-    }
 
-    override fun toString(): String {
-        return "SockAddr(family=${storage.ssFamily}, len=$length)"
-    }
+    override fun toString(): String = "SockAddr(family=${storage.ssFamily}, len=$length)"
 }
 
 /**
@@ -168,7 +145,7 @@ public sealed class Socket2SocketAddress {
      */
     public data class V4(
         val address: String, // IPv4 address as string (e.g., "192.168.1.1")
-        val port: Int
+        val port: Int,
     ) : Socket2SocketAddress() {
         init {
             require(port in 0..65535) { "Port must be in range 0..65535" }
@@ -182,7 +159,7 @@ public sealed class Socket2SocketAddress {
         val address: String, // IPv6 address as string (e.g., "::1")
         val port: Int,
         val flow: UInt = 0u,
-        val scope: UInt = 0u
+        val scope: UInt = 0u,
     ) : Socket2SocketAddress() {
         init {
             require(port in 0..65535) { "Port must be in range 0..65535" }

@@ -9,7 +9,9 @@ package io.github.kotlinmania.socket2
  *
  * This type is freely interconvertible with Int.
  */
-public data class Type(public val value: Int) {
+public data class Type(
+    public val value: Int,
+) {
     public companion object {
         /**
          * Type corresponding to `SOCK_STREAM`.

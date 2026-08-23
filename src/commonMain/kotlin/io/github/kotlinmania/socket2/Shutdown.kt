@@ -9,8 +9,10 @@ package io.github.kotlinmania.socket2
 public enum class Shutdown {
     /** Further receives will be disallowed */
     Read,
+
     /** Further sends will be disallowed */
     Write,
+
     /** Further sends and receives will be disallowed */
-    Both
+    Both,
 }
