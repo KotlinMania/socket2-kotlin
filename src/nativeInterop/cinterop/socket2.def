@@ -1,7 +1,7 @@
+package = io.github.kotlinmania.socket2.cinterop
 headers = socket2_wrapper.h
 headerFilter = socket2_wrapper.h
 
-compilerOpts.osx = -std=c++17
 linkerOpts.osx = -lc++
 
 ---
