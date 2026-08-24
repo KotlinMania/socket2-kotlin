@@ -4,14 +4,14 @@ Based on AST analysis, here are the concrete next steps.
 
 ## Summary
 
-- **Files Present:** 4/6 (66.7%)
-- **Function parity:** 35/399 matched (target 50) — 8.8%
-- **Class/type parity:** 14/33 matched (target 18) — 42.4%
-- **Combined symbol parity:** 49/432 matched (target 68) — 11.3%
-- **Average inline-code cosine:** 0.00 (function body across 3 matched files)
-- **Average documentation cosine:** 0.48 (doc text across 3 matched files)
-- **Cheat-zeroed Files:** 4
-- **Critical Issues:** 4 files with <0.60 function similarity
+- **Files Present:** 5/6 (83.3%)
+- **Function parity:** 26/391 matched (target 56) — 6.6%
+- **Class/type parity:** 13/32 matched (target 21) — 40.6%
+- **Combined symbol parity:** 39/423 matched (target 77) — 9.2%
+- **Average inline-code cosine:** 0.11 (function body across 5 matched files)
+- **Average documentation cosine:** 0.45 (doc text across 5 matched files)
+- **Cheat-zeroed Files:** 2
+- **Critical Issues:** 5 files with <0.60 function similarity
 
 ## Priority 1: Fix Incomplete High-Dependency Files
 
@@ -29,15 +29,14 @@ Every matched file is listed below with function and type symbol parity.
 
 ### 1. socket
 
-- **Target:** `socket2.Socket [STUB]`
+- **Target:** `socket2.Socket`
 - **Similarity:** 0.00
 - **Dependents:** 2
-- **Priority Score:** 3243410.0
-- **Functions:** 10/132 matched (target 13)
-- **Missing functions:** `from_raw`, `into_raw`, `pair`, `pair_raw`, `connect_timeout`, `accept_raw`, `local_addr`, `peer_addr`, `r#type`, `try_clone`, `nonblocking`, `set_nonblocking`, `recv_out_of_band`, `recv_with_flags`, `recv_vectored`, `recv_vectored_with_flags`, `peek`, `recv_from`, `recv_from_with_flags`, `recv_from_vectored`, `recv_from_vectored_with_flags`, `peek_from`, `peek_sender`, `recvmsg`, `send_with_flags`, `send_vectored`, `send_vectored_with_flags`, `send_out_of_band`, `send_to`, `send_to_with_flags`, `send_to_vectored`, `send_to_vectored_with_flags`, `sendmsg`, `set_common_type`, `set_common_flags`, `set_common_accept_flags`, `broadcast`, `set_broadcast`, `take_error`, `keepalive`, `set_keepalive`, `linger`, `set_linger`, `out_of_band_inline`, `set_out_of_band_inline`, `passcred`, `set_passcred`, `priority`, `set_priority`, `recv_buffer_size`, `set_recv_buffer_size`, `read_timeout`, `set_read_timeout`, `reuse_address`, `set_reuse_address`, `send_buffer_size`, `set_send_buffer_size`, `write_timeout`, `set_write_timeout`, `from_linger`, `into_linger`, `header_included_v4`, `set_header_included_v4`, `ip_transparent_v4`, `set_ip_transparent_v4`, `join_multicast_v4`, `leave_multicast_v4`, `join_multicast_v4_n`, `leave_multicast_v4_n`, `join_ssm_v4`, `leave_ssm_v4`, `multicast_all_v4`, `set_multicast_all_v4`, `multicast_if_v4`, `set_multicast_if_v4`, `multicast_loop_v4`, `set_multicast_loop_v4`, `multicast_ttl_v4`, `set_multicast_ttl_v4`, `ttl_v4`, `set_ttl_v4`, `set_tos_v4`, `tos_v4`, `set_recv_tos_v4`, `recv_tos_v4`, `original_dst_v4`, `header_included_v6`, `set_header_included_v6`, `ip_transparent_v6`, `set_ip_transparent_v6`, `join_multicast_v6`, `leave_multicast_v6`, `multicast_hops_v6`, `set_multicast_hops_v6`, `multicast_all_v6`, `set_multicast_all_v6`, `multicast_if_v6`, `set_multicast_if_v6`, `multicast_loop_v6`, `set_multicast_loop_v6`, `unicast_hops_v6`, `set_unicast_hops_v6`, `only_v6`, `set_only_v6`, `recv_tclass_v6`, `set_recv_tclass_v6`, `recv_hoplimit_v6`, `set_recv_hoplimit_v6`, `original_dst_v6`, `tcp_keepalive_time`, `tcp_keepalive_interval`, `tcp_keepalive_retries`, `set_tcp_keepalive`, `tcp_nodelay`, `set_tcp_nodelay`, `set_tcp_ack_frequency`, `read`, `read_vectored`, `write`, `write_vectored`, `flush`, `fmt`
-- **Types:** 1/2 matched (target 1)
+- **Priority Score:** 3313110.0
+- **Functions:** 0/129 matched (target 6)
+- **Missing functions:** `from_raw`, `as_raw`, `into_raw`, `new`, `new_raw`, `pair`, `pair_raw`, `bind`, `connect`, `connect_timeout`, `listen`, `accept`, `accept_raw`, `local_addr`, `peer_addr`, `r#type`, `try_clone`, `nonblocking`, `set_nonblocking`, `shutdown`, `recv`, `recv_out_of_band`, `recv_with_flags`, `recv_vectored`, `recv_vectored_with_flags`, `peek`, `recv_from`, `recv_from_with_flags`, `recv_from_vectored`, `recv_from_vectored_with_flags`, `peek_from`, `peek_sender`, `recvmsg`, `send`, `send_with_flags`, `send_vectored`, `send_vectored_with_flags`, `send_out_of_band`, `send_to`, `send_to_with_flags`, `send_to_vectored`, `send_to_vectored_with_flags`, `sendmsg`, `set_common_type`, `set_common_flags`, `set_common_accept_flags`, `broadcast`, `set_broadcast`, `take_error`, `keepalive`, `set_keepalive`, `linger`, `set_linger`, `out_of_band_inline`, `set_out_of_band_inline`, `passcred`, `set_passcred`, `priority`, `set_priority`, `recv_buffer_size`, `set_recv_buffer_size`, `read_timeout`, `set_read_timeout`, `reuse_address`, `set_reuse_address`, `send_buffer_size`, `set_send_buffer_size`, `write_timeout`, `set_write_timeout`, `from_linger`, `into_linger`, `header_included_v4`, `set_header_included_v4`, `ip_transparent_v4`, `set_ip_transparent_v4`, `join_multicast_v4`, `leave_multicast_v4`, `join_multicast_v4_n`, `leave_multicast_v4_n`, `join_ssm_v4`, `leave_ssm_v4`, `multicast_all_v4`, `set_multicast_all_v4`, `multicast_if_v4`, `set_multicast_if_v4`, `multicast_loop_v4`, `set_multicast_loop_v4`, `multicast_ttl_v4`, `set_multicast_ttl_v4`, `ttl_v4`, `set_ttl_v4`, `set_tos_v4`, `tos_v4`, `set_recv_tos_v4`, `recv_tos_v4`, `original_dst_v4`, `header_included_v6`, `set_header_included_v6`, `join_multicast_v6`, `leave_multicast_v6`, `multicast_hops_v6`, `set_multicast_hops_v6`, `multicast_all_v6`, `set_multicast_all_v6`, `multicast_if_v6`, `set_multicast_if_v6`, `multicast_loop_v6`, `set_multicast_loop_v6`, `unicast_hops_v6`, `set_unicast_hops_v6`, `only_v6`, `set_only_v6`, `recv_tclass_v6`, `set_recv_tclass_v6`, `recv_hoplimit_v6`, `set_recv_hoplimit_v6`, `original_dst_v6`, `tcp_keepalive_time`, `tcp_keepalive_interval`, `tcp_keepalive_retries`, `set_tcp_keepalive`, `tcp_nodelay`, `set_tcp_nodelay`, `read`, `read_vectored`, `write`, `write_vectored`, `flush`, `fmt`
+- **Types:** 1/2 matched
 - **Missing types:** `InterfaceIndexOrAddress`
-- **TODOs:** 1
 
 ### 2. sys.unix
 
@@ -51,7 +50,18 @@ Every matched file is listed below with function and type symbol parity.
 - **Missing types:** `Bool`, `IovLen`, `MaybeUninitSlice`, `Socket`, `SockFilter`, `CcidEndpoints`, `Target`
 - **Tests:** 0/2 matched
 
-### 3. sockaddr
+### 3. sockref
+
+- **Target:** `socket2.SockRef`
+- **Similarity:** 0.21
+- **Dependents:** 1
+- **Priority Score:** 1030507.9
+- **Functions:** 1/3 matched (target 10)
+- **Missing functions:** `deref`, `fmt`
+- **Types:** 1/2 matched (target 1)
+- **Missing types:** `Target`
+
+### 4. sockaddr
 
 - **Target:** `socket2.SockAddr [ZERO]`
 - **Similarity:** 0.00
@@ -63,16 +73,16 @@ Every matched file is listed below with function and type symbol parity.
 - **Missing types:** _none_
 - **Tests:** 0/11 matched
 
-### 4. lib
+### 5. lib
 
-- **Target:** `socket2.Type [ZERO]`
-- **Similarity:** 0.00
+- **Target:** `socket2.Type`
+- **Similarity:** 0.33
 - **Dependents:** 0
-- **Priority Score:** 52510.0
-- **Functions:** 12/16 matched (target 23)
+- **Priority Score:** 72506.7
+- **Functions:** 12/16 matched (target 26)
 - **Missing functions:** `from`, `fmt`, `deref`, `deref_mut`
-- **Types:** 8/9 matched (target 8)
-- **Missing types:** `Target`
+- **Types:** 6/9 matched
+- **Missing types:** `Type`, `Protocol`, `Target`
 
 ## Success Criteria
 
