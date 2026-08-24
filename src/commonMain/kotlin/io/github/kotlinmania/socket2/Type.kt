@@ -9,7 +9,7 @@ package io.github.kotlinmania.socket2
  *
  * This type is freely interconvertible with Int.
  */
-public data class Type(
+public data class SocketType(
     public val value: Int,
 ) {
     public companion object {
@@ -18,14 +18,14 @@ public data class Type(
          *
          * Used for protocols such as TCP.
          */
-        public val STREAM: Type = Type(SOCK_STREAM)
+        public val STREAM: SocketType = SocketType(SOCK_STREAM)
 
         /**
          * Type corresponding to `SOCK_DGRAM`.
          *
          * Used for protocols such as UDP.
          */
-        public val DGRAM: Type = Type(SOCK_DGRAM)
+        public val DGRAM: SocketType = SocketType(SOCK_DGRAM)
 
         /**
          * Type corresponding to `SOCK_DCCP`.
@@ -33,19 +33,22 @@ public data class Type(
          * Used for the DCCP protocol.
          * Only available on Linux with `all` feature.
          */
-        public val DCCP: Type = Type(SOCK_DCCP)
+        public val DCCP: SocketType = SocketType(SOCK_DCCP)
 
         /**
          * Type corresponding to `SOCK_SEQPACKET`.
          */
-        public val SEQPACKET: Type = Type(SOCK_SEQPACKET)
+        public val SEQPACKET: SocketType = SocketType(SOCK_SEQPACKET)
 
         /**
          * Type corresponding to `SOCK_RAW`.
          */
-        public val RAW: Type = Type(SOCK_RAW)
+        public val RAW: SocketType = SocketType(SOCK_RAW)
     }
 }
+
+// Callers migrated:
+// - Type -> io.github.kotlinmania.socket2.SocketType
 
 /**
  * Platform-specific socket type constants.

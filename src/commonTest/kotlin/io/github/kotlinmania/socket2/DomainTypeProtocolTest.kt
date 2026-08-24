@@ -17,10 +17,10 @@ class DomainTypeProtocolTest {
 
     @Test
     fun testTypeCreation() {
-        val stream = Type.STREAM
-        val dgram = Type.DGRAM
-        val seqpacket = Type.SEQPACKET
-        val raw = Type.RAW
+        val stream = SocketType.STREAM
+        val dgram = SocketType.DGRAM
+        val seqpacket = SocketType.SEQPACKET
+        val raw = SocketType.RAW
         assertNotNull(stream)
         assertNotNull(dgram)
         assertNotNull(seqpacket)
@@ -29,10 +29,10 @@ class DomainTypeProtocolTest {
 
     @Test
     fun testProtocolCreation() {
-        val tcp = Protocol.TCP
-        val udp = Protocol.UDP
-        val icmp4 = Protocol.ICMPV4
-        val icmp6 = Protocol.ICMPV6
+        val tcp = SocketProtocol.TCP
+        val udp = SocketProtocol.UDP
+        val icmp4 = SocketProtocol.ICMPV4
+        val icmp6 = SocketProtocol.ICMPV6
         assertNotNull(tcp)
         assertNotNull(udp)
         assertNotNull(icmp4)

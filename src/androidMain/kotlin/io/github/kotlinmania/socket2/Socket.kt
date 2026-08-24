@@ -8,12 +8,12 @@ public actual class Socket internal constructor(
     private var channel: SocketChannel?,
 ) {
     public actual companion object {
-        public actual fun new(domain: Domain, type: Type, protocol: Protocol?): Result<Socket> {
+        public actual fun new(domain: Domain, type: SocketType, protocol: SocketProtocol?): Result<Socket> {
             return try {
                 val channel = SocketChannel.open()
                 when (type) {
-                    Type.STREAM -> channel.configureBlocking(true)
-                    Type.DGRAM -> return Result.failure(IOException("DGRAM type requires DatagramChannel, not yet implemented"))
+                    SocketType.STREAM -> channel.configureBlocking(true)
+                    SocketType.DGRAM -> return Result.failure(IOException("DGRAM type requires DatagramChannel, not yet implemented"))
                     else -> return Result.failure(IOException("Unsupported socket type on Android: $type"))
                 }
                 Result.success(Socket(channel))
@@ -22,7 +22,7 @@ public actual class Socket internal constructor(
             }
         }
 
-        public actual fun newRaw(domain: Domain, type: Type, protocol: Protocol?): Result<Socket> =
+        public actual fun newRaw(domain: Domain, type: SocketType, protocol: SocketProtocol?): Result<Socket> =
             try {
                 val channel = SocketChannel.open()
                 Result.success(Socket(channel))

@@ -48,7 +48,7 @@ public actual class Socket internal constructor(
          *
          * See commonMain/Socket.kt for full documentation.
          */
-        public actual fun new(domain: Domain, type: Type, protocol: Protocol?): Result<Socket> {
+        public actual fun new(domain: Domain, type: SocketType, protocol: SocketProtocol?): Result<Socket> {
             return try {
                 val protocolValue = protocol?.value ?: 0
                 val socketFd = Socket2Native.socket(domain.value, type.value, protocolValue)
@@ -63,7 +63,7 @@ public actual class Socket internal constructor(
          *
          * See commonMain/Socket.kt for full documentation.
          */
-        public actual fun newRaw(domain: Domain, type: Type, protocol: Protocol?): Result<Socket> {
+        public actual fun newRaw(domain: Domain, type: SocketType, protocol: SocketProtocol?): Result<Socket> {
             return new(domain, type, protocol)
         }
     }
