@@ -6,10 +6,10 @@ package io.github.kotlinmania.socket2
  */
 public actual class Socket internal constructor() {
     public actual companion object {
-        public actual fun new(domain: Domain, type: Type, protocol: Protocol?): Result<Socket> =
+        public actual fun new(domain: Domain, type: SocketType, protocol: SocketProtocol?): Result<Socket> =
             Result.failure(UnsupportedOperationException("Sockets not available in wasmWasi"))
 
-        public actual fun newRaw(domain: Domain, type: Type, protocol: Protocol?): Result<Socket> =
+        public actual fun newRaw(domain: Domain, type: SocketType, protocol: SocketProtocol?): Result<Socket> =
             Result.failure(UnsupportedOperationException("Sockets not available in wasmWasi"))
     }
 

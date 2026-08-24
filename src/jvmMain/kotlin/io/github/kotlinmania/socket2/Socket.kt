@@ -20,16 +20,16 @@ public actual class Socket internal constructor(
          *
          * See commonMain/Socket.kt for full documentation.
          */
-        public actual fun new(domain: Domain, type: Type, protocol: Protocol?): Result<Socket> {
+        public actual fun new(domain: Domain, type: SocketType, protocol: SocketProtocol?): Result<Socket> {
             return try {
                 val channel = SocketChannel.open()
                 // Configure socket based on type
                 when (type) {
-                    Type.STREAM -> {
+                    SocketType.STREAM -> {
                         // TCP socket - default for SocketChannel
                         channel.configureBlocking(true)
                     }
-                    Type.DGRAM -> {
+                    SocketType.DGRAM -> {
                         // UDP not directly supported by SocketChannel
                         // Would need DatagramChannel instead
                         return Result.failure(IOException("DGRAM type requires DatagramChannel, not yet implemented"))
@@ -49,7 +49,7 @@ public actual class Socket internal constructor(
          *
          * See commonMain/Socket.kt for full documentation.
          */
-        public actual fun newRaw(domain: Domain, type: Type, protocol: Protocol?): Result<Socket> =
+        public actual fun newRaw(domain: Domain, type: SocketType, protocol: SocketProtocol?): Result<Socket> =
             try {
                 val channel = SocketChannel.open()
                 Result.success(Socket(channel))

@@ -1,35 +1,15 @@
-import XCTest
+import Testing
 import Socket2
 
-// Smoke test for the Kotlin → Swift Export → SPM → swift test pipeline.
-//
-// The file's mere existence and successful compilation prove three layers
-// of the pipeline:
-//
-//   1. `embedSwiftExportForXcode` produced `Socket2.swiftmodule/`
-//      and the supporting KotlinRuntimeSupport / ExportedKotlinPackages /
-//      KotlinRuntime swiftmodule bundles. If any of them were missing,
-//      `import Socket2` above would fail at compile time.
-//
-//   2. The static archive `libSocket2.a` (produced by the
-//      `linkSwiftExportBinaryDebugStaticMacosArm64` and
-//      `mergeMacosDebugSwiftExportLibraries` tasks) supplied every
-//      `__root____*` and `KotlinError`-related symbol the Swift modules
-//      reference. If the archive were missing or empty, this test
-//      executable would fail to link with "undefined symbols for
-//      architecture arm64".
-//
-//   3. The Kotlin `swiftExport { moduleName = "Socket2" }` and
-//      `flattenPackage = "io.github.kotlinmania.socket2"` configuration in
-//      build.gradle.kts produced a module name that's both syntactically
-//      valid as a Swift identifier and reachable from this Package.swift
-//      via the `Socket2Library` product.
-//
-// Add more meaningful per-API tests below as the Swift Export surface
-// grows. For now the import + a single passing assertion is the
-// canary that the pipeline is green for this repo.
-final class Socket2ExportTests: XCTestCase {
-    func testSwiftModuleLoads() throws {
-        XCTAssertTrue(true, "Socket2 swift module imported cleanly")
+@Suite("Socket2 Swift Export Tests")
+struct Socket2ExportTests {
+    @Test("Swift module loads and exports SocketType cleanly")
+    func swiftModuleLoads() {
+        let stream = SocketType.Companion.shared.STREAM
+        #expect(stream.value != 0)
+        let dgram = SocketType.Companion.shared.DGRAM
+        #expect(dgram.value != 0)
+        let tcp = SocketProtocol.Companion.shared.TCP
+        #expect(tcp.value != 0)
     }
 }

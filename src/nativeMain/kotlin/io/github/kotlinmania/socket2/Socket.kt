@@ -24,12 +24,12 @@ public actual class Socket internal constructor(
     private var fd: RawSocket?,
 ) {
     public actual companion object {
-        public actual fun new(domain: Domain, type: Type, protocol: Protocol?): Result<Socket> =
+        public actual fun new(domain: Domain, type: SocketType, protocol: SocketProtocol?): Result<Socket> =
             newRaw(domain, type, protocol).mapCatching { socket ->
                 socket
             }
 
-        public actual fun newRaw(domain: Domain, type: Type, protocol: Protocol?): Result<Socket> {
+        public actual fun newRaw(domain: Domain, type: SocketType, protocol: SocketProtocol?): Result<Socket> {
             val protocolValue = protocol?.value ?: 0
             return socket(domain.value, type.value, protocolValue).map { rawFd ->
                 Socket(rawFd)

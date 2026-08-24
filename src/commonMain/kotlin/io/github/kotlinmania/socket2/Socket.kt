@@ -13,9 +13,9 @@ package io.github.kotlinmania.socket2
  */
 public expect class Socket {
     public companion object {
-        public fun new(domain: Domain, type: Type, protocol: Protocol?): Result<Socket>
+        public fun new(domain: Domain, type: SocketType, protocol: SocketProtocol?): Result<Socket>
 
-        public fun newRaw(domain: Domain, type: Type, protocol: Protocol?): Result<Socket>
+        public fun newRaw(domain: Domain, type: SocketType, protocol: SocketProtocol?): Result<Socket>
     }
 
     public fun bind(address: SockAddr): Result<Unit>

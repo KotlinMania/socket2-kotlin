@@ -8,61 +8,64 @@ package io.github.kotlinmania.socket2
  *
  * This type is freely interconvertible with Int.
  */
-public data class Protocol(
+public data class SocketProtocol(
     public val value: Int,
 ) {
     public companion object {
         /**
          * Protocol corresponding to `ICMPv4`.
          */
-        public val ICMPV4: Protocol = Protocol(IPPROTO_ICMP)
+        public val ICMPV4: SocketProtocol = SocketProtocol(IPPROTO_ICMP)
 
         /**
          * Protocol corresponding to `ICMPv6`.
          */
-        public val ICMPV6: Protocol = Protocol(IPPROTO_ICMPV6)
+        public val ICMPV6: SocketProtocol = SocketProtocol(IPPROTO_ICMPV6)
 
         /**
          * Protocol corresponding to `TCP`.
          */
-        public val TCP: Protocol = Protocol(IPPROTO_TCP)
+        public val TCP: SocketProtocol = SocketProtocol(IPPROTO_TCP)
 
         /**
          * Protocol corresponding to `UDP`.
          */
-        public val UDP: Protocol = Protocol(IPPROTO_UDP)
+        public val UDP: SocketProtocol = SocketProtocol(IPPROTO_UDP)
 
         /**
          * Protocol corresponding to `MPTCP`.
          * Linux-specific.
          */
-        public val MPTCP: Protocol = Protocol(IPPROTO_MPTCP)
+        public val MPTCP: SocketProtocol = SocketProtocol(IPPROTO_MPTCP)
 
         /**
          * Protocol corresponding to `DCCP`.
          * Linux-specific with `all` feature.
          */
-        public val DCCP: Protocol = Protocol(IPPROTO_DCCP)
+        public val DCCP: SocketProtocol = SocketProtocol(IPPROTO_DCCP)
 
         /**
          * Protocol corresponding to `SCTP`.
          * Available on FreeBSD and Linux with `all` feature.
          */
-        public val SCTP: Protocol = Protocol(IPPROTO_SCTP)
+        public val SCTP: SocketProtocol = SocketProtocol(IPPROTO_SCTP)
 
         /**
          * Protocol corresponding to `UDPLITE`.
          * Available on Android, FreeBSD, Fuchsia, Linux with `all` feature.
          */
-        public val UDPLITE: Protocol = Protocol(IPPROTO_UDPLITE)
+        public val UDPLITE: SocketProtocol = SocketProtocol(IPPROTO_UDPLITE)
 
         /**
          * Protocol corresponding to `DIVERT`.
          * Available on FreeBSD and OpenBSD with `all` feature.
          */
-        public val DIVERT: Protocol = Protocol(IPPROTO_DIVERT)
+        public val DIVERT: SocketProtocol = SocketProtocol(IPPROTO_DIVERT)
     }
 }
+
+// Callers migrated:
+// - Protocol -> io.github.kotlinmania.socket2.SocketProtocol
 
 /**
  * Platform-specific protocol constants.
