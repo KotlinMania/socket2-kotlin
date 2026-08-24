@@ -2,10 +2,8 @@
 package io.github.kotlinmania.socket2
 
 import java.net.InetSocketAddress
-import java.net.StandardSocketOptions
-import java.nio.channels.ServerSocketChannel
-import java.nio.channels.SocketChannel
 import java.nio.ByteBuffer
+import java.nio.channels.SocketChannel
 
 /**
  * JVM implementation of Socket using Java NIO SocketChannel.
@@ -14,7 +12,7 @@ import java.nio.ByteBuffer
  * to call native socket APIs on the underlying platform.
  */
 public actual class Socket internal constructor(
-    private var channel: SocketChannel?
+    private var channel: SocketChannel?,
 ) {
     public actual companion object {
         /**
@@ -51,14 +49,13 @@ public actual class Socket internal constructor(
          *
          * See commonMain/Socket.kt for full documentation.
          */
-        public actual fun newRaw(domain: Domain, type: Type, protocol: Protocol?): Result<Socket> {
-            return try {
+        public actual fun newRaw(domain: Domain, type: Type, protocol: Protocol?): Result<Socket> =
+            try {
                 val channel = SocketChannel.open()
                 Result.success(Socket(channel))
             } catch (e: Exception) {
                 Result.failure(IOException("socket() failed: ${e.message}"))
             }
-        }
     }
 
     /**
@@ -71,14 +68,15 @@ public actual class Socket internal constructor(
             val ch = channel ?: return Result.failure(IllegalStateException("Socket already closed"))
             val socketAddr = address.asSocket() ?: return Result.failure(IOException("Invalid address for JVM socket"))
 
-            val inetAddr = when (socketAddr) {
-                is Socket2SocketAddress.V4 -> {
-                    InetSocketAddress(socketAddr.address, socketAddr.port)
+            val inetAddr =
+                when (socketAddr) {
+                    is Socket2SocketAddress.V4 -> {
+                        InetSocketAddress(socketAddr.address, socketAddr.port)
+                    }
+                    is Socket2SocketAddress.V6 -> {
+                        InetSocketAddress(socketAddr.address, socketAddr.port)
+                    }
                 }
-                is Socket2SocketAddress.V6 -> {
-                    InetSocketAddress(socketAddr.address, socketAddr.port)
-                }
-            }
 
             ch.socket().bind(inetAddr)
             Result.success(Unit)
@@ -97,14 +95,15 @@ public actual class Socket internal constructor(
             val ch = channel ?: return Result.failure(IllegalStateException("Socket already closed"))
             val socketAddr = address.asSocket() ?: return Result.failure(IOException("Invalid address for JVM socket"))
 
-            val inetAddr = when (socketAddr) {
-                is Socket2SocketAddress.V4 -> {
-                    InetSocketAddress(socketAddr.address, socketAddr.port)
+            val inetAddr =
+                when (socketAddr) {
+                    is Socket2SocketAddress.V4 -> {
+                        InetSocketAddress(socketAddr.address, socketAddr.port)
+                    }
+                    is Socket2SocketAddress.V6 -> {
+                        InetSocketAddress(socketAddr.address, socketAddr.port)
+                    }
                 }
-                is Socket2SocketAddress.V6 -> {
-                    InetSocketAddress(socketAddr.address, socketAddr.port)
-                }
-            }
 
             ch.connect(inetAddr)
             Result.success(Unit)
@@ -119,18 +118,14 @@ public actual class Socket internal constructor(
      * Note: For JVM, this requires converting to a ServerSocketChannel.
      * See commonMain/Socket.kt for full documentation.
      */
-    public actual fun listen(backlog: Int): Result<Unit> {
-        return Result.failure(IOException("listen() not yet implemented for JVM - requires ServerSocketChannel refactoring"))
-    }
+    public actual fun listen(backlog: Int): Result<Unit> = Result.failure(IOException("listen() not yet implemented for JVM - requires ServerSocketChannel refactoring"))
 
     /**
      * Accept a new incoming connection from this listener.
      *
      * See commonMain/Socket.kt for full documentation.
      */
-    public actual fun accept(): Result<Pair<Socket, SockAddr>> {
-        return Result.failure(IOException("accept() not yet implemented for JVM - requires ServerSocketChannel refactoring"))
-    }
+    public actual fun accept(): Result<Pair<Socket, SockAddr>> = Result.failure(IOException("accept() not yet implemented for JVM - requires ServerSocketChannel refactoring"))
 
     /**
      * Shuts down the read, write, or both halves of this connection.
@@ -213,12 +208,12 @@ public actual class Socket internal constructor(
         }
     }
 
-    override fun toString(): String {
-        return "Socket(channel=$channel)"
-    }
+    override fun toString(): String = "Socket(channel=$channel)"
 }
 
 /**
  * Exception thrown when a socket operation fails.
  */
-class IOException(message: String) : Exception(message)
+class IOException(
+    message: String,
+) : Exception(message)

@@ -10,14 +10,14 @@ package io.github.kotlinmania.socket2
  * Not available on Redox.
  */
 public class MsgHdrMut private constructor(
-    private var inner: Msghdr?
+    private var inner: Msghdr?,
 ) {
     public companion object {
         /**
          * Create a new `MsgHdrMut` with all empty/zero fields.
          */
-        public fun new(): MsgHdrMut {
-            return MsgHdrMut(
+        public fun new(): MsgHdrMut =
+            MsgHdrMut(
                 Msghdr(
                     msgName = null,
                     msgNamelen = 0u,
@@ -25,10 +25,9 @@ public class MsgHdrMut private constructor(
                     msgIovlen = 0,
                     msgControl = null,
                     msgControlen = 0u,
-                    msgFlags = 0
-                )
+                    msgFlags = 0,
+                ),
             )
-        }
     }
 
     /**
@@ -38,10 +37,11 @@ public class MsgHdrMut private constructor(
      */
     public fun withAddr(addr: SockAddr): MsgHdrMut {
         val current = inner ?: throw IllegalStateException("MsgHdrMut already consumed")
-        inner = current.copy(
-            msgName = addr.asStorage().storage.padding,
-            msgNamelen = addr.len()
-        )
+        inner =
+            current.copy(
+                msgName = addr.asStorage().storage.padding,
+                msgNamelen = addr.len(),
+            )
         return this
     }
 
@@ -52,16 +52,18 @@ public class MsgHdrMut private constructor(
      */
     public fun withBuffers(bufs: List<MaybeUninitSlice>): MsgHdrMut {
         val current = inner ?: throw IllegalStateException("MsgHdrMut already consumed")
-        val iovecs = bufs.map { buf ->
-            Iovec(
-                iovBase = buf.buffer,
-                iovLen = buf.size.toULong()
+        val iovecs =
+            bufs.map { buf ->
+                Iovec(
+                    iovBase = buf.buffer,
+                    iovLen = buf.size.toULong(),
+                )
+            }
+        inner =
+            current.copy(
+                msgIov = iovecs,
+                msgIovlen = iovecs.size,
             )
-        }
-        inner = current.copy(
-            msgIov = iovecs,
-            msgIovlen = iovecs.size
-        )
         return this
     }
 
@@ -72,10 +74,11 @@ public class MsgHdrMut private constructor(
      */
     public fun withControl(buf: ByteArray): MsgHdrMut {
         val current = inner ?: throw IllegalStateException("MsgHdrMut already consumed")
-        inner = current.copy(
-            msgControl = buf,
-            msgControlen = buf.size.toUInt()
-        )
+        inner =
+            current.copy(
+                msgControl = buf,
+                msgControlen = buf.size.toUInt(),
+            )
         return this
     }
 

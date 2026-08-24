@@ -14,15 +14,23 @@ package io.github.kotlinmania.socket2
 public expect class Socket {
     public companion object {
         public fun new(domain: Domain, type: Type, protocol: Protocol?): Result<Socket>
+
         public fun newRaw(domain: Domain, type: Type, protocol: Protocol?): Result<Socket>
     }
 
     public fun bind(address: SockAddr): Result<Unit>
+
     public fun connect(address: SockAddr): Result<Unit>
+
     public fun listen(backlog: Int): Result<Unit>
+
     public fun accept(): Result<Pair<Socket, SockAddr>>
+
     public fun shutdown(how: Shutdown): Result<Unit>
+
     public fun recv(buffer: ByteArray, flags: Int): Result<Int>
+
     public fun send(buffer: ByteArray, flags: Int): Result<Int>
+
     public fun close(): Result<Unit>
 }

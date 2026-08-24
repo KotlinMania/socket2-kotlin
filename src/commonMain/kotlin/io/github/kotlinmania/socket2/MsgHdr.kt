@@ -10,14 +10,14 @@ package io.github.kotlinmania.socket2
  * Not available on Redox.
  */
 public class MsgHdr private constructor(
-    private var inner: Msghdr?
+    private var inner: Msghdr?,
 ) {
     public companion object {
         /**
          * Create a new `MsgHdr` with all empty/zero fields.
          */
-        public fun new(): MsgHdr {
-            return MsgHdr(
+        public fun new(): MsgHdr =
+            MsgHdr(
                 Msghdr(
                     msgName = null,
                     msgNamelen = 0u,
@@ -25,10 +25,9 @@ public class MsgHdr private constructor(
                     msgIovlen = 0,
                     msgControl = null,
                     msgControlen = 0u,
-                    msgFlags = 0
-                )
+                    msgFlags = 0,
+                ),
             )
-        }
     }
 
     /**
@@ -38,10 +37,11 @@ public class MsgHdr private constructor(
      */
     public fun withAddr(addr: SockAddr): MsgHdr {
         val current = inner ?: throw IllegalStateException("MsgHdr already consumed")
-        inner = current.copy(
-            msgName = addr.asStorage().storage.padding,
-            msgNamelen = addr.len()
-        )
+        inner =
+            current.copy(
+                msgName = addr.asStorage().storage.padding,
+                msgNamelen = addr.len(),
+            )
         return this
     }
 
@@ -52,16 +52,18 @@ public class MsgHdr private constructor(
      */
     public fun withBuffers(bufs: List<ByteArray>): MsgHdr {
         val current = inner ?: throw IllegalStateException("MsgHdr already consumed")
-        val iovecs = bufs.map { buf ->
-            Iovec(
-                iovBase = buf,
-                iovLen = buf.size.toULong()
+        val iovecs =
+            bufs.map { buf ->
+                Iovec(
+                    iovBase = buf,
+                    iovLen = buf.size.toULong(),
+                )
+            }
+        inner =
+            current.copy(
+                msgIov = iovecs,
+                msgIovlen = iovecs.size,
             )
-        }
-        inner = current.copy(
-            msgIov = iovecs,
-            msgIovlen = iovecs.size
-        )
         return this
     }
 
@@ -72,10 +74,11 @@ public class MsgHdr private constructor(
      */
     public fun withControl(buf: ByteArray): MsgHdr {
         val current = inner ?: throw IllegalStateException("MsgHdr already consumed")
-        inner = current.copy(
-            msgControl = buf,
-            msgControlen = buf.size.toUInt()
-        )
+        inner =
+            current.copy(
+                msgControl = buf,
+                msgControlen = buf.size.toUInt(),
+            )
         return this
     }
 

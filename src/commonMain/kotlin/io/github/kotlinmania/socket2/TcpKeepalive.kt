@@ -11,7 +11,7 @@ import kotlin.time.Duration
 public data class TcpKeepalive(
     public val time: Duration? = null,
     public val interval: Duration? = null,
-    public val retries: UInt? = null
+    public val retries: UInt? = null,
 ) {
     public companion object {
         /**
@@ -31,9 +31,7 @@ public data class TcpKeepalive(
      * Some platforms specify this value in seconds, so sub-second
      * specifications may be omitted.
      */
-    public fun withTime(time: Duration): TcpKeepalive {
-        return copy(time = time)
-    }
+    public fun withTime(time: Duration): TcpKeepalive = copy(time = time)
 
     /**
      * Set the time interval between TCP keepalive probes.
@@ -43,16 +41,12 @@ public data class TcpKeepalive(
      * Some platforms specify this value in seconds, so sub-second
      * specifications may be omitted.
      */
-    public fun withInterval(interval: Duration): TcpKeepalive {
-        return copy(interval = interval)
-    }
+    public fun withInterval(interval: Duration): TcpKeepalive = copy(interval = interval)
 
     /**
      * Set the maximum number of TCP keepalive probes before dropping the connection.
      *
      * Configures how many keepalive probes are sent before considering the connection dead.
      */
-    public fun withRetries(retries: UInt): TcpKeepalive {
-        return copy(retries = retries)
-    }
+    public fun withRetries(retries: UInt): TcpKeepalive = copy(retries = retries)
 }

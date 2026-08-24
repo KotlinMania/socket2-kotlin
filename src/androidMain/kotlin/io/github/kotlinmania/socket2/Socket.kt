@@ -5,7 +5,7 @@ import java.net.InetSocketAddress
 import java.nio.channels.SocketChannel
 
 public actual class Socket internal constructor(
-    private var channel: SocketChannel?
+    private var channel: SocketChannel?,
 ) {
     public actual companion object {
         public actual fun new(domain: Domain, type: Type, protocol: Protocol?): Result<Socket> {
@@ -22,24 +22,24 @@ public actual class Socket internal constructor(
             }
         }
 
-        public actual fun newRaw(domain: Domain, type: Type, protocol: Protocol?): Result<Socket> {
-            return try {
+        public actual fun newRaw(domain: Domain, type: Type, protocol: Protocol?): Result<Socket> =
+            try {
                 val channel = SocketChannel.open()
                 Result.success(Socket(channel))
             } catch (e: Exception) {
                 Result.failure(IOException("socket() failed: ${e.message}"))
             }
-        }
     }
 
     public actual fun bind(address: SockAddr): Result<Unit> {
         return try {
             val ch = channel ?: return Result.failure(IllegalStateException("Socket already closed"))
             val socketAddr = address.asSocket() ?: return Result.failure(IOException("Invalid address"))
-            val inetAddr = when (socketAddr) {
-                is Socket2SocketAddress.V4 -> InetSocketAddress(socketAddr.address, socketAddr.port)
-                is Socket2SocketAddress.V6 -> InetSocketAddress(socketAddr.address, socketAddr.port)
-            }
+            val inetAddr =
+                when (socketAddr) {
+                    is Socket2SocketAddress.V4 -> InetSocketAddress(socketAddr.address, socketAddr.port)
+                    is Socket2SocketAddress.V6 -> InetSocketAddress(socketAddr.address, socketAddr.port)
+                }
             ch.socket().bind(inetAddr)
             Result.success(Unit)
         } catch (e: Exception) {
@@ -51,10 +51,11 @@ public actual class Socket internal constructor(
         return try {
             val ch = channel ?: return Result.failure(IllegalStateException("Socket already closed"))
             val socketAddr = address.asSocket() ?: return Result.failure(IOException("Invalid address"))
-            val inetAddr = when (socketAddr) {
-                is Socket2SocketAddress.V4 -> InetSocketAddress(socketAddr.address, socketAddr.port)
-                is Socket2SocketAddress.V6 -> InetSocketAddress(socketAddr.address, socketAddr.port)
-            }
+            val inetAddr =
+                when (socketAddr) {
+                    is Socket2SocketAddress.V4 -> InetSocketAddress(socketAddr.address, socketAddr.port)
+                    is Socket2SocketAddress.V6 -> InetSocketAddress(socketAddr.address, socketAddr.port)
+                }
             ch.connect(inetAddr)
             Result.success(Unit)
         } catch (e: Exception) {
@@ -75,7 +76,10 @@ public actual class Socket internal constructor(
             when (how) {
                 Shutdown.Read -> socket.shutdownInput()
                 Shutdown.Write -> socket.shutdownOutput()
-                Shutdown.Both -> { socket.shutdownInput(); socket.shutdownOutput() }
+                Shutdown.Both -> {
+                    socket.shutdownInput()
+                    socket.shutdownOutput()
+                }
             }
             Result.success(Unit)
         } catch (e: Exception) {
@@ -122,4 +126,6 @@ public actual class Socket internal constructor(
     override fun toString(): String = "Socket(channel=$channel)"
 }
 
-class IOException(message: String) : Exception(message)
+class IOException(
+    message: String,
+) : Exception(message)

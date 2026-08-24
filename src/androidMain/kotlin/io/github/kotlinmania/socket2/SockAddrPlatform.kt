@@ -6,8 +6,8 @@ public actual fun sockAddrUnix(path: String): Result<SockAddr> =
 
 internal actual fun SockAddr.asSocketPlatform(): Socket2SocketAddress? = this.asSocket()
 
-public actual fun Socket2SocketAddress.toSockAddr(): SockAddr {
-    return when (this) {
+public actual fun Socket2SocketAddress.toSockAddr(): SockAddr =
+    when (this) {
         is Socket2SocketAddress.V4 -> {
             val storage = SockaddrStorage(ssFamily = 2u.toUShort(), padding = ByteArray(126))
             SockAddr.new(SockAddrStorage(storage), 16u)
@@ -17,4 +17,3 @@ public actual fun Socket2SocketAddress.toSockAddr(): SockAddr {
             SockAddr.new(SockAddrStorage(storage), 28u)
         }
     }
-}
