@@ -760,8 +760,8 @@ val buildNativeBindings by tasks.registering(Exec::class) {
 
     workingDir = napiModuleDir
 
-    // Install dependencies first, then build
-    commandLine("npm", "install")
+    // Install dependencies if missing, then rebuild N-API module
+    commandLine("sh", "-c", "if [ ! -d node_modules ]; then npm install; else npx node-gyp rebuild; fi")
 
     inputs.files(
         napiModuleDir.resolve("binding.gyp"),
