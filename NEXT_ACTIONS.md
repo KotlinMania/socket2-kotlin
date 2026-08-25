@@ -5,9 +5,9 @@ Based on AST analysis, here are the concrete next steps.
 ## Summary
 
 - **Files Present:** 5/6 (83.3%)
-- **Function parity:** 26/391 matched (target 57) — 6.6%
-- **Class/type parity:** 13/32 matched (target 22) — 40.6%
-- **Combined symbol parity:** 39/423 matched (target 79) — 9.2%
+- **Function parity:** 26/391 matched (target 64) — 6.6%
+- **Class/type parity:** 13/32 matched (target 23) — 40.6%
+- **Combined symbol parity:** 39/423 matched (target 87) — 9.2%
 - **Average inline-code cosine:** 0.11 (function body across 5 matched files)
 - **Average documentation cosine:** 0.45 (doc text across 5 matched files)
 - **Cheat-zeroed Files:** 1
@@ -67,9 +67,9 @@ Every matched file is listed below with function and type symbol parity.
 - **Similarity:** 0.00
 - **Dependents:** 0
 - **Priority Score:** 213810.0
-- **Functions:** 13/34 matched (target 14)
+- **Functions:** 13/34 matched (target 21)
 - **Missing functions:** `view_as`, `fmt`, `try_init`, `unix`, `set_length`, `as_ptr`, `as_bytes`, `from`, `eq`, `hash`, `ipv4`, `ipv6`, `ipv4_eq`, `ipv4_hash`, `ipv6_eq`, `ipv6_hash`, `ipv4_ipv6_eq`, `ipv4_ipv6_hash`, `test_eq`, `test_hash`, `calculate_hash`
-- **Types:** 4/4 matched (target 7)
+- **Types:** 4/4 matched (target 8)
 - **Missing types:** _none_
 - **Tests:** 0/11 matched
 
