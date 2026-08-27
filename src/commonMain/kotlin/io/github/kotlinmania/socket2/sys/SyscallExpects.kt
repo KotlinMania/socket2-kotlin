@@ -1,4 +1,4 @@
-// port-lint: source sys/unix.rs
+// port-lint: source socket2/src/sys/unix.rs
 package io.github.kotlinmania.socket2.sys
 
 import io.github.kotlinmania.socket2.SockAddr

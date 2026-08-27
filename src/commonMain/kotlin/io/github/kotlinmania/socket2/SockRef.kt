@@ -1,4 +1,4 @@
-// port-lint: source sockref.rs
+// port-lint: source socket2/src/sockref.rs
 package io.github.kotlinmania.socket2
 
 /**
