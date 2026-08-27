@@ -7,6 +7,9 @@ import org.gradle.api.tasks.testing.AbstractTestTask
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.gradle.kotlin.dsl.support.serviceOf
+import org.gradle.language.cpp.tasks.CppCompile
+import org.gradle.nativeplatform.Linkage
+import org.gradle.nativeplatform.tasks.CreateStaticLibrary
 import org.gradle.plugins.signing.Sign
 import org.gradle.process.ExecOperations
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
@@ -40,6 +43,10 @@ plugins {
     alias(libs.plugins.ktlint)
     alias(libs.plugins.kotlinx.benchmark)
     alias(libs.plugins.kotlin.allopen)
+    `cpp-library`
+    // First-party publishing. The convenience publishing plugin rejects
+    // cpp-library's native publication at configuration time. maven-publish
+    // coexists with cpp-library; Central Portal upload is a bespoke task.
     `maven-publish`
     signing
 }
@@ -352,8 +359,75 @@ val jvmToolchainVersion = providers.gradleProperty("jvm.toolchain").getOrElse("2
 //   target surface, so there are NO opt-in build gates. The build gate is the
 //   contract that forces every current KotlinMania target to compile.
 // ============================================================================
+
+// ============================================================================
+// C++ Wrapper Compilation for Native Interop
+// ----------------------------------------------------------------------------
+// Gradle's cpp-library plugin compiles the socket2 C++ wrapper as a static
+// library, which cinterop then bundles into the produced klib. Source lives in
+// src/nativeInterop/cinterop (not the plugin default src/main/cpp), so the
+// source/header dirs are set explicitly. STATIC linkage gives cinterop a
+// libsocket2_wrapper.a to bundle (no runtime .dylib dependency).
+// ============================================================================
+library {
+    baseName.set("socket2_wrapper")
+
+    // Source files
+    source.from(file("src/nativeInterop/cinterop/socket2_wrapper.cpp"))
+
+    // Private headers
+    privateHeaders.from(file("src/nativeInterop/cinterop"))
+
+    // Static linkage so cinterop can bundle the archive directly.
+    linkage.set(listOf(Linkage.STATIC))
+
+    // Declare every host-native machine our CI runners cover. Gradle's
+    // cpp-library plugin CANNOT cross-compile — it only builds the variant
+    // matching the build host and creates no tasks for the others. So the
+    // macOS runner builds macОS, the Linux runner builds Linux, the Windows
+    // runner builds Windows; each is a host-native compile, never a cross.
+    // (Ref: Gradle cpp_library_plugin docs — cross-compilation unsupported.)
+    targetMachines.set(
+        listOf(
+            machines.macOS.architecture("aarch64"),
+            machines.macOS.x86_64,
+            machines.linux.x86_64,
+            machines.linux.architecture("aarch64"),
+            machines.windows.x86_64,
+        ),
+    )
+}
+
+tasks.withType<CppCompile>().configureEach {
+    compilerArgs.addAll("-std=c++17", "-fPIC")
+
+    // Platform-specific args, resolved lazily — the plugin sets targetPlatform
+    // after this configureEach runs, so querying it eagerly fails.
+    compilerArgs.addAll(
+        targetPlatform.map { platform ->
+            if (platform.operatingSystem.isMacOsX) listOf("-stdlib=libc++") else emptyList()
+        },
+    )
+}
+
+// Ensure the static library is built before any cinterop task runs.
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.CInteropProcess>().configureEach {
+    dependsOn(tasks.withType<CreateStaticLibrary>())
+}
+
+// ============================================================================
 kotlin {
     jvmToolchain(jvmToolchainVersion)
+
+    // Configure cinterop for all native targets
+    targets.withType<KotlinNativeTarget>().configureEach {
+        compilations.getByName("main") {
+            cinterops.create("socket2") {
+                defFile = project.file("src/nativeInterop/cinterop/socket2.def")
+                includeDirs(project.file("src/nativeInterop/cinterop"))
+            }
+        }
+    }
 
     applyDefaultHierarchyTemplate()
 
@@ -435,7 +509,7 @@ kotlin {
     linuxArm64 { configureBenchmarkCompilation() }
     mingwX64 { configureBenchmarkCompilation() }
 
-    // Android NDK — 64-bit only (32-bit retired §5.5.3, 2026-06-25).
+    // Android NDK — always built for supported 64-bit targets.
     androidNativeArm64 { configureBenchmarkCompilation() }
     androidNativeX64 { configureBenchmarkCompilation() }
 
@@ -670,12 +744,80 @@ rootProject.extensions.configure<NodeJsRootExtension>("kotlinNodeJs") {
 }
 
 // ============================================================================
+// N-API Native Bindings Build
+// ----------------------------------------------------------------------------
+// Build the socket2-kotlin N-API module that provides direct POSIX syscalls
+// to Node.js. This must complete before Kotlin/JS compilation so the external
+// declarations can reference the compiled addon.
+// ============================================================================
+
+val napiModuleDir = layout.projectDirectory.dir("native/node-socket").asFile
+val napiModuleBuildMarker = napiModuleDir.resolve("build/Release/socket2_native.node")
+
+val buildNativeBindings by tasks.registering(Exec::class) {
+    group = "build"
+    description = "Builds the N-API native bindings for Node.js using node-gyp"
+
+    workingDir = napiModuleDir
+
+    // Install dependencies if missing, then rebuild N-API module
+    commandLine("sh", "-c", "if [ ! -d node_modules ]; then npm install; else npx node-gyp rebuild; fi")
+
+    inputs.files(
+        napiModuleDir.resolve("binding.gyp"),
+        napiModuleDir.resolve("package.json"),
+        napiModuleDir.resolve("src/socket_bindings.cpp"),
+    )
+    outputs.file(napiModuleBuildMarker)
+
+    doFirst {
+        if (!napiModuleDir.exists()) {
+            throw GradleException(
+                "N-API module directory not found: $napiModuleDir\n" +
+                    "The native bindings are required for Node.js support.",
+            )
+        }
+    }
+
+    doLast {
+        if (!napiModuleBuildMarker.exists()) {
+            throw GradleException(
+                "N-API build failed: ${napiModuleBuildMarker.absolutePath} not found.\n" +
+                    "Check that node-gyp and required build tools are installed.",
+            )
+        }
+        logger.lifecycle("✓ N-API native bindings built: ${napiModuleBuildMarker.absolutePath}")
+    }
+}
+
+val cleanNativeBindings by tasks.registering(Delete::class) {
+    group = "build"
+    description = "Cleans the N-API native bindings build artifacts"
+    delete(napiModuleDir.resolve("build"))
+    delete(napiModuleDir.resolve("node_modules"))
+}
+
+tasks.named("clean") {
+    dependsOn(cleanNativeBindings)
+}
+
+// Make all Node.js Kotlin compilation tasks depend on the N-API build
+tasks
+    .matching { task ->
+        task.name.matches(Regex("compileKotlin(Js|Node|WasmJs).*")) ||
+            task.name.matches(Regex(".*(js|node|wasmJs)MainClasses"))
+    }.configureEach {
+        dependsOn(buildNativeBindings)
+    }
+
+// ============================================================================
 // Maven Central publishing — Central Portal, first-party + bespoke upload
 // ----------------------------------------------------------------------------
 // OSSRH was sunset 2025-06-30; the Central Portal is the only path. Sonatype
 // ships no first-party Gradle plugin, so we use Gradle's own maven-publish +
 // signing (KGP populates the KMP publications) and upload the deployment
-// bundle to the Portal API ourselves.
+// bundle to the Portal API ourselves. No convenience plugin = no clash with
+// cpp-library's native publication.
 //
 // Flow: publish all KMP publications into a local staging Maven layout ->
 // zip it -> POST the zip to the Portal upload endpoint with a Bearer token.
@@ -688,8 +830,13 @@ val emptyJavadocJar by tasks.registering(Jar::class) {
     archiveClassifier.set("javadoc")
 }
 
+// The cpp-library plugin registers a native publication named "main" (artifactId
+// socket2_wrapper). It is internal tooling consumed by cinterop — never shipped
+// to Maven Central — so it is excluded from POM config, staging, and the bundle.
+val cppLibraryPublicationName = "main"
+
 publishing {
-    publications.withType<MavenPublication>().configureEach {
+    publications.withType<MavenPublication>().matching { !it.name.startsWith(cppLibraryPublicationName) }.configureEach {
         artifact(emptyJavadocJar)
         pom {
             name.set(publishProjectName)
@@ -741,18 +888,24 @@ signing {
     val signingEnabled = project.findProperty("RELEASE_SIGNING_ENABLED") != "false" && signingKey != null
     if (signingEnabled) {
         useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
-        sign(publishing.publications)
+        sign(publishing.publications.matching { !it.name.startsWith(cppLibraryPublicationName) })
     }
 }
 
 val centralPortalPublishTasks =
     tasks.withType<PublishToMavenRepository>().matching {
-        it.name.endsWith("ToCentralPortalStagingRepository")
+        it.name.endsWith("ToCentralPortalStagingRepository") && !it.name.startsWith("publishMain")
     }
 
 centralPortalPublishTasks.configureEach {
     dependsOn(tasks.withType<Sign>())
 }
+
+// Never stage/publish the C++ wrapper publication to Maven Central.
+tasks
+    .matching {
+        it.name.startsWith("publishMain") && it.name.contains("Publication")
+    }.configureEach { enabled = false }
 
 // Zip the staged Maven layout into a single Central Portal deployment bundle.
 val centralPortalBundle by tasks.registering(Zip::class) {
@@ -911,17 +1064,20 @@ tasks.register("hostTests") {
     )
 }
 
-// Patch generated SPM Package.swift to include minimum macOS platform for Swift Concurrency
-tasks.matching { it.name.contains("GenerateSPMPackage") }.configureEach {
+tasks.matching { it.name.endsWith("GenerateSPMPackage") }.configureEach {
     doLast {
-        val spmDir = layout.buildDirectory.dir("SPMPackage").orNull?.asFile
-        if (spmDir != null && spmDir.exists()) {
-            spmDir.walkTopDown().filter { it.name == "Package.swift" }.forEach { file ->
-                val text = file.readText()
+        val spmPackageDir =
+            layout.buildDirectory
+                .dir("SPMPackage")
+                .get()
+                .asFile
+        if (spmPackageDir.exists()) {
+            spmPackageDir.walkTopDown().filter { it.name == "Package.swift" }.forEach { packageSwift ->
+                val text = packageSwift.readText()
                 if (!text.contains("platforms:")) {
-                    file.writeText(
+                    packageSwift.writeText(
                         text.replaceFirst(
-                            Regex("""(let package = Package\s*\(\s*name:\s*"[^"]*",)"""),
+                            Regex("""(Package\(\s*name:\s*"[^"]*",)"""),
                             "$1\n    platforms: [.macOS(.v14)],",
                         ),
                     )
@@ -943,23 +1099,25 @@ tasks.register("swiftExportSmokeTest") {
 
     doLast {
         val execOperations = serviceOf<ExecOperations>()
-        val swiftBuildFile =
+        val swiftBuildDirFile =
             layout.buildDirectory
                 .dir("swift-test")
                 .get()
                 .asFile
-        if (swiftBuildFile.exists()) {
-            swiftBuildFile.deleteRecursively()
-        }
-        swiftBuildFile.mkdirs()
-        val swiftBuildDir = swiftBuildFile.absolutePath
+        swiftBuildDirFile.deleteRecursively()
+        swiftBuildDirFile.mkdirs()
+        val swiftBuildDir = swiftBuildDirFile.absolutePath
+        layout.buildDirectory
+            .dir("bin/macosArm64/SwiftExportBinaryDebugStatic")
+            .get()
+            .asFile
+            .mkdirs()
         execOperations
             .exec {
                 workingDir = projectDir
                 commandLine(
                     "./gradlew",
                     "embedSwiftExportForXcode",
-                    "-Dorg.gradle.jvmargs=-Xmx6g -XX:MaxMetaspaceSize=1g",
                     "--no-configuration-cache",
                     "--no-daemon",
                     "--console=plain",
@@ -977,6 +1135,23 @@ tasks.register("swiftExportSmokeTest") {
                     ),
                 )
             }.assertNormalExitValue()
+
+        val generatedPackageSwift =
+            layout.buildDirectory
+                .file("SPMPackage/macosArm64/Debug/Package.swift")
+                .get()
+                .asFile
+        if (generatedPackageSwift.exists()) {
+            val text = generatedPackageSwift.readText()
+            if (!text.contains("platforms:")) {
+                generatedPackageSwift.writeText(
+                    text.replaceFirst(
+                        Regex("""(let package = Package\s*\(\s*name:\s*"[^"]*",|Package\(\s*name:\s*"[^"]*",)"""),
+                        "$1\n    platforms: [.macOS(.v14)],",
+                    ),
+                )
+            }
+        }
 
         execOperations
             .exec {
@@ -996,8 +1171,8 @@ tasks.register("swiftExportSmokeTest") {
 // `build` aggregate
 // ----------------------------------------------------------------------------
 // Every configured native target, unconditionally. This is the audit contract —
-// it must mirror the kotlin { } target block exactly. watchosArm32 is the only
-// retired native target (see §5.5.1); everything else MUST build.
+// it must mirror the kotlin { } target block exactly. Retired native targets
+// stay out of both lists; everything configured here MUST build.
 // Do not add a dynamic tasks.matching fallback here: copied templates must make
 // the target surface explicit so missing declarations fail loudly in review.
 // ============================================================================
