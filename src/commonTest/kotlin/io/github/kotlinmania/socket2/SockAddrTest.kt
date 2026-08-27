@@ -1,4 +1,4 @@
-// port-lint: tests socket2/src/sockaddr.rs
+// port-lint: tests sockaddr.rs
 package io.github.kotlinmania.socket2
 
 import kotlin.test.Test
