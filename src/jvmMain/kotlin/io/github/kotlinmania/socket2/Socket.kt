@@ -1,4 +1,4 @@
-// port-lint: source socket.rs
+// port-lint: source socket2/src/socket.rs
 package io.github.kotlinmania.socket2
 
 import java.net.InetSocketAddress

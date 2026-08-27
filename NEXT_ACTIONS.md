@@ -4,14 +4,14 @@ Based on AST analysis, here are the concrete next steps.
 
 ## Summary
 
-- **Files Present:** 5/6 (83.3%)
-- **Function parity:** 26/391 matched (target 64) — 6.6%
-- **Class/type parity:** 13/32 matched (target 23) — 40.6%
-- **Combined symbol parity:** 39/423 matched (target 87) — 9.2%
-- **Average inline-code cosine:** 0.11 (function body across 5 matched files)
-- **Average documentation cosine:** 0.45 (doc text across 5 matched files)
-- **Cheat-zeroed Files:** 1
-- **Critical Issues:** 5 files with <0.60 function similarity
+- **Files Present:** 7/13 (53.8%)
+- **Function parity:** 30/867 matched (target 64) — 3.5%
+- **Class/type parity:** 13/66 matched (target 23) — 19.7%
+- **Combined symbol parity:** 43/933 matched (target 87) — 4.6%
+- **Average inline-code cosine:** 0.04 (function body across 5 matched files)
+- **Average documentation cosine:** 0.41 (doc text across 5 matched files)
+- **Cheat-zeroed Files:** 4
+- **Critical Issues:** 7 files with <0.60 function similarity
 
 ## Priority 1: Fix Incomplete High-Dependency Files
 
@@ -27,41 +27,56 @@ No missing high-value files detected.
 
 Every matched file is listed below with function and type symbol parity.
 
-### 1. socket
+### 1. socket2.socket
 
 - **Target:** `socket2.Socket`
 - **Similarity:** 0.00
-- **Dependents:** 2
-- **Priority Score:** 3313110.0
+- **Dependents:** 4
+- **Priority Score:** 5313110.0
 - **Functions:** 0/129 matched (target 6)
 - **Missing functions:** `from_raw`, `as_raw`, `into_raw`, `new`, `new_raw`, `pair`, `pair_raw`, `bind`, `connect`, `connect_timeout`, `listen`, `accept`, `accept_raw`, `local_addr`, `peer_addr`, `r#type`, `try_clone`, `nonblocking`, `set_nonblocking`, `shutdown`, `recv`, `recv_out_of_band`, `recv_with_flags`, `recv_vectored`, `recv_vectored_with_flags`, `peek`, `recv_from`, `recv_from_with_flags`, `recv_from_vectored`, `recv_from_vectored_with_flags`, `peek_from`, `peek_sender`, `recvmsg`, `send`, `send_with_flags`, `send_vectored`, `send_vectored_with_flags`, `send_out_of_band`, `send_to`, `send_to_with_flags`, `send_to_vectored`, `send_to_vectored_with_flags`, `sendmsg`, `set_common_type`, `set_common_flags`, `set_common_accept_flags`, `broadcast`, `set_broadcast`, `take_error`, `keepalive`, `set_keepalive`, `linger`, `set_linger`, `out_of_band_inline`, `set_out_of_band_inline`, `passcred`, `set_passcred`, `priority`, `set_priority`, `recv_buffer_size`, `set_recv_buffer_size`, `read_timeout`, `set_read_timeout`, `reuse_address`, `set_reuse_address`, `send_buffer_size`, `set_send_buffer_size`, `write_timeout`, `set_write_timeout`, `from_linger`, `into_linger`, `header_included_v4`, `set_header_included_v4`, `ip_transparent_v4`, `set_ip_transparent_v4`, `join_multicast_v4`, `leave_multicast_v4`, `join_multicast_v4_n`, `leave_multicast_v4_n`, `join_ssm_v4`, `leave_ssm_v4`, `multicast_all_v4`, `set_multicast_all_v4`, `multicast_if_v4`, `set_multicast_if_v4`, `multicast_loop_v4`, `set_multicast_loop_v4`, `multicast_ttl_v4`, `set_multicast_ttl_v4`, `ttl_v4`, `set_ttl_v4`, `set_tos_v4`, `tos_v4`, `set_recv_tos_v4`, `recv_tos_v4`, `original_dst_v4`, `header_included_v6`, `set_header_included_v6`, `join_multicast_v6`, `leave_multicast_v6`, `multicast_hops_v6`, `set_multicast_hops_v6`, `multicast_all_v6`, `set_multicast_all_v6`, `multicast_if_v6`, `set_multicast_if_v6`, `multicast_loop_v6`, `set_multicast_loop_v6`, `unicast_hops_v6`, `set_unicast_hops_v6`, `only_v6`, `set_only_v6`, `recv_tclass_v6`, `set_recv_tclass_v6`, `recv_hoplimit_v6`, `set_recv_hoplimit_v6`, `original_dst_v6`, `tcp_keepalive_time`, `tcp_keepalive_interval`, `tcp_keepalive_retries`, `set_tcp_keepalive`, `tcp_nodelay`, `set_tcp_nodelay`, `read`, `read_vectored`, `write`, `write_vectored`, `flush`, `fmt`
 - **Types:** 1/2 matched
 - **Missing types:** `InterfaceIndexOrAddress`
 
-### 2. sys.unix
-
-- **Target:** `socket2.Shutdown`
-- **Similarity:** 0.00
-- **Dependents:** 0
-- **Priority Score:** 1515110.0
-- **Functions:** 0/143 matched (target 1)
-- **Missing functions:** `nonblocking`, `cloexec`, `is_end_of_record`, `is_out_of_band`, `is_confirm`, `is_dontroute`, `fmt`, `new`, `as_slice`, `as_mut_slice`, `offset_of_path`, `unix_sockaddr`, `set_msghdr_name`, `set_msghdr_iov`, `set_msghdr_control`, `set_msghdr_flags`, `msghdr_flags`, `msghdr_control_len`, `vsock`, `as_vsock_address`, `is_unnamed`, `as_sockaddr_un`, `path_len`, `path_bytes`, `as_unix`, `as_pathname`, `as_abstract_namespace`, `socket_from_raw`, `socket_as_raw`, `socket_into_raw`, `socket`, `socketpair`, `bind`, `connect`, `poll_connect`, `listen`, `accept`, `getsockname`, `getpeername`, `try_clone`, `set_nonblocking`, `shutdown`, `recv`, `recv_from`, `peek_sender`, `recv_vectored`, `recv_from_vectored`, `recvmsg`, `send`, `send_vectored`, `send_to`, `send_to_vectored`, `sendmsg`, `timeout_opt`, `from_timeval`, `set_timeout_opt`, `into_timeval`, `tcp_keepalive_time`, `set_tcp_keepalive`, `into_secs`, `fcntl_get`, `fcntl_add`, `fcntl_remove`, `getsockopt`, `setsockopt`, `to_in_addr`, `from_in_addr`, `to_in6_addr`, `from_in6_addr`, `to_mreqn`, `original_dst_v4`, `original_dst_v6`, `accept4`, `set_cloexec`, `set_no_peercred`, `set_nosigpipe`, `tcp_mss`, `set_tcp_mss`, `is_listener`, `domain`, `protocol`, `mark`, `set_mark`, `tcp_cork`, `set_tcp_cork`, `tcp_quickack`, `set_tcp_quickack`, `tcp_thin_linear_timeouts`, `set_tcp_thin_linear_timeouts`, `tcp_notsent_lowat`, `set_tcp_notsent_lowat`, `device`, `bind_device`, `set_fib`, `bind_device_by_index_v4`, `bind_device_by_index_v6`, `device_index_v4`, `device_index_v6`, `cpu_affinity`, `set_cpu_affinity`, `reuse_port`, `set_reuse_port`, `reuse_port_lb`, `set_reuse_port_lb`, `freebind_v4`, `set_freebind_v4`, `freebind_v6`, `set_freebind_v6`, `sendfile`, `set_tcp_user_timeout`, `tcp_user_timeout`, `attach_filter`, `detach_filter`, `cookie`, `tclass_v6`, `set_tclass_v6`, `tcp_congestion`, `set_tcp_congestion`, `set_dccp_service`, `dccp_service`, `set_dccp_ccid`, `dccp_tx_ccid`, `dccp_xx_ccid`, `set_dccp_server_timewait`, `dccp_server_timewait`, `set_dccp_send_cscov`, `dccp_send_cscov`, `set_dccp_recv_cscov`, `dccp_recv_cscov`, `set_dccp_qpolicy_txqlen`, `dccp_qpolicy_txqlen`, `dccp_available_ccids`, `dccp_cur_mps`, `busy_poll`, `set_busy_poll`, `deref`, `as_fd`, `as_raw_fd`, `from`, `into_raw_fd`, `from_raw_fd`, `in_addr_convertion`, `in6_addr_convertion`
-- **Types:** 1/8 matched (target 3)
-- **Missing types:** `Bool`, `IovLen`, `MaybeUninitSlice`, `Socket`, `SockFilter`, `CcidEndpoints`, `Target`
-- **Tests:** 0/2 matched
-
-### 3. sockref
+### 2. socket2.sockref
 
 - **Target:** `socket2.SockRef`
 - **Similarity:** 0.21
-- **Dependents:** 1
-- **Priority Score:** 1030507.9
+- **Dependents:** 2
+- **Priority Score:** 2030507.9
 - **Functions:** 1/3 matched (target 10)
 - **Missing functions:** `deref`, `fmt`
 - **Types:** 1/2 matched (target 1)
 - **Missing types:** `Target`
 
-### 4. sockaddr
+### 3. sys.unix
+
+- **Target:** `socket2.Shutdown`
+- **Similarity:** 0.00
+- **Dependents:** 0
+- **Priority Score:** 1525110.0
+- **Functions:** 0/143 matched (target 1)
+- **Missing functions:** `nonblocking`, `cloexec`, `is_end_of_record`, `is_out_of_band`, `is_confirm`, `is_dontroute`, `fmt`, `new`, `as_slice`, `as_mut_slice`, `offset_of_path`, `unix_sockaddr`, `set_msghdr_name`, `set_msghdr_iov`, `set_msghdr_control`, `set_msghdr_flags`, `msghdr_flags`, `msghdr_control_len`, `vsock`, `as_vsock_address`, `is_unnamed`, `as_sockaddr_un`, `path_len`, `path_bytes`, `as_unix`, `as_pathname`, `as_abstract_namespace`, `socket_from_raw`, `socket_as_raw`, `socket_into_raw`, `socket`, `socketpair`, `bind`, `connect`, `poll_connect`, `listen`, `accept`, `getsockname`, `getpeername`, `try_clone`, `set_nonblocking`, `shutdown`, `recv`, `recv_from`, `peek_sender`, `recv_vectored`, `recv_from_vectored`, `recvmsg`, `send`, `send_vectored`, `send_to`, `send_to_vectored`, `sendmsg`, `timeout_opt`, `from_timeval`, `set_timeout_opt`, `into_timeval`, `tcp_keepalive_time`, `set_tcp_keepalive`, `into_secs`, `fcntl_get`, `fcntl_add`, `fcntl_remove`, `getsockopt`, `setsockopt`, `to_in_addr`, `from_in_addr`, `to_in6_addr`, `from_in6_addr`, `to_mreqn`, `original_dst_v4`, `original_dst_v6`, `accept4`, `set_cloexec`, `set_no_peercred`, `set_nosigpipe`, `tcp_mss`, `set_tcp_mss`, `is_listener`, `domain`, `protocol`, `mark`, `set_mark`, `tcp_cork`, `set_tcp_cork`, `tcp_quickack`, `set_tcp_quickack`, `tcp_thin_linear_timeouts`, `set_tcp_thin_linear_timeouts`, `tcp_notsent_lowat`, `set_tcp_notsent_lowat`, `device`, `bind_device`, `set_fib`, `bind_device_by_index_v4`, `bind_device_by_index_v6`, `device_index_v4`, `device_index_v6`, `cpu_affinity`, `set_cpu_affinity`, `reuse_port`, `set_reuse_port`, `reuse_port_lb`, `set_reuse_port_lb`, `freebind_v4`, `set_freebind_v4`, `freebind_v6`, `set_freebind_v6`, `sendfile`, `set_tcp_user_timeout`, `tcp_user_timeout`, `attach_filter`, `detach_filter`, `cookie`, `tclass_v6`, `set_tclass_v6`, `tcp_congestion`, `set_tcp_congestion`, `set_dccp_service`, `dccp_service`, `set_dccp_ccid`, `dccp_tx_ccid`, `dccp_xx_ccid`, `set_dccp_server_timewait`, `dccp_server_timewait`, `set_dccp_send_cscov`, `dccp_send_cscov`, `set_dccp_recv_cscov`, `dccp_recv_cscov`, `set_dccp_qpolicy_txqlen`, `dccp_qpolicy_txqlen`, `dccp_available_ccids`, `dccp_cur_mps`, `busy_poll`, `set_busy_poll`, `deref`, `as_fd`, `as_raw_fd`, `from`, `into_raw_fd`, `from_raw_fd`, `in_addr_convertion`, `in6_addr_convertion`
+- **Types:** 0/8 matched (target 2)
+- **Missing types:** `Bool`, `IovLen`, `MaybeUninitSlice`, `Socket`, `RawSocket`, `SockFilter`, `CcidEndpoints`, `Target`
+- **Tests:** 0/2 matched
+
+### 4. socket2-rust.sys.unix
+
+- **Target:** `sys.SyscallExpects [ZERO] [PROVENANCE-FALLBACK]`
+- **Similarity:** 0.00
+- **Dependents:** 0
+- **Priority Score:** 1515110.0
+- **Functions:** 0/143 matched (target 0)
+- **Missing functions:** `nonblocking`, `cloexec`, `is_end_of_record`, `is_out_of_band`, `is_confirm`, `is_dontroute`, `fmt`, `new`, `as_slice`, `as_mut_slice`, `offset_of_path`, `unix_sockaddr`, `set_msghdr_name`, `set_msghdr_iov`, `set_msghdr_control`, `set_msghdr_flags`, `msghdr_flags`, `msghdr_control_len`, `vsock`, `as_vsock_address`, `is_unnamed`, `as_sockaddr_un`, `path_len`, `path_bytes`, `as_unix`, `as_pathname`, `as_abstract_namespace`, `socket_from_raw`, `socket_as_raw`, `socket_into_raw`, `socket`, `socketpair`, `bind`, `connect`, `poll_connect`, `listen`, `accept`, `getsockname`, `getpeername`, `try_clone`, `set_nonblocking`, `shutdown`, `recv`, `recv_from`, `peek_sender`, `recv_vectored`, `recv_from_vectored`, `recvmsg`, `send`, `send_vectored`, `send_to`, `send_to_vectored`, `sendmsg`, `timeout_opt`, `from_timeval`, `set_timeout_opt`, `into_timeval`, `tcp_keepalive_time`, `set_tcp_keepalive`, `into_secs`, `fcntl_get`, `fcntl_add`, `fcntl_remove`, `getsockopt`, `setsockopt`, `to_in_addr`, `from_in_addr`, `to_in6_addr`, `from_in6_addr`, `to_mreqn`, `original_dst_v4`, `original_dst_v6`, `accept4`, `set_cloexec`, `set_no_peercred`, `set_nosigpipe`, `tcp_mss`, `set_tcp_mss`, `is_listener`, `domain`, `protocol`, `mark`, `set_mark`, `tcp_cork`, `set_tcp_cork`, `tcp_quickack`, `set_tcp_quickack`, `tcp_thin_linear_timeouts`, `set_tcp_thin_linear_timeouts`, `tcp_notsent_lowat`, `set_tcp_notsent_lowat`, `device`, `bind_device`, `set_fib`, `bind_device_by_index_v4`, `bind_device_by_index_v6`, `device_index_v4`, `device_index_v6`, `cpu_affinity`, `set_cpu_affinity`, `reuse_port`, `set_reuse_port`, `reuse_port_lb`, `set_reuse_port_lb`, `freebind_v4`, `set_freebind_v4`, `freebind_v6`, `set_freebind_v6`, `sendfile`, `set_tcp_user_timeout`, `tcp_user_timeout`, `attach_filter`, `detach_filter`, `cookie`, `tclass_v6`, `set_tclass_v6`, `tcp_congestion`, `set_tcp_congestion`, `set_dccp_service`, `dccp_service`, `set_dccp_ccid`, `dccp_tx_ccid`, `dccp_xx_ccid`, `set_dccp_server_timewait`, `dccp_server_timewait`, `set_dccp_send_cscov`, `dccp_send_cscov`, `set_dccp_recv_cscov`, `dccp_recv_cscov`, `set_dccp_qpolicy_txqlen`, `dccp_qpolicy_txqlen`, `dccp_available_ccids`, `dccp_cur_mps`, `busy_poll`, `set_busy_poll`, `deref`, `as_fd`, `as_raw_fd`, `from`, `into_raw_fd`, `from_raw_fd`, `in_addr_convertion`, `in6_addr_convertion`
+- **Types:** 1/8 matched (target 1)
+- **Missing types:** `Bool`, `IovLen`, `MaybeUninitSlice`, `Socket`, `SockFilter`, `CcidEndpoints`, `Target`
+- **Tests:** 0/2 matched
+- **Provenance warning:** port-lint provenance header matched only after fallback normalization: `socket2/src/sys/unix.rs` vs expected `sys/unix.rs`
+- **Proposed provenance header:** `// port-lint: source sys/unix.rs` (current: `// port-lint: source socket2/src/sys/unix.rs`)
+- **Lint issues:** 1
+
+### 5. socket2.sockaddr
 
 - **Target:** `socket2.SockAddr [ZERO]`
 - **Similarity:** 0.00
@@ -73,16 +88,30 @@ Every matched file is listed below with function and type symbol parity.
 - **Missing types:** _none_
 - **Tests:** 0/11 matched
 
-### 5. lib
+### 6. socket2-rust.lib
 
-- **Target:** `socket2.Type`
-- **Similarity:** 0.33
+- **Target:** `socket2.MsgHdr [STUB] [PROVENANCE-FALLBACK]`
+- **Similarity:** 0.00
 - **Dependents:** 0
-- **Priority Score:** 72506.7
-- **Functions:** 12/16 matched (target 26)
-- **Missing functions:** `from`, `fmt`, `deref`, `deref_mut`
-- **Types:** 6/9 matched
-- **Missing types:** `Type`, `Protocol`, `Target`
+- **Priority Score:** 192510.0
+- **Functions:** 5/16 matched (target 7)
+- **Missing functions:** `for_address`, `from`, `is_truncated`, `fmt`, `deref`, `deref_mut`, `with_time`, `with_interval`, `with_retries`, `flags`, `control_len`
+- **Types:** 1/9 matched (target 1)
+- **Missing types:** `Domain`, `Type`, `Protocol`, `RecvFlags`, `MaybeUninitSlice`, `Target`, `TcpKeepalive`, `MsgHdrMut`
+- **Provenance warning:** port-lint provenance header matched only after fallback normalization: `socket2/src/lib.rs` vs expected `lib.rs`
+- **Proposed provenance header:** `// port-lint: source lib.rs` (current: `// port-lint: source socket2/src/lib.rs`)
+- **Lint issues:** 1
+
+### 7. socket2.lib
+
+- **Target:** `socket2.Type [STUB]`
+- **Similarity:** 0.00
+- **Dependents:** 0
+- **Priority Score:** 92510.0
+- **Functions:** 11/16 matched (target 19)
+- **Missing functions:** `from`, `fmt`, `deref`, `deref_mut`, `with_flags`
+- **Types:** 5/9 matched (target 8)
+- **Missing types:** `Type`, `Protocol`, `Target`, `MsgHdr`
 
 ## Success Criteria
 
