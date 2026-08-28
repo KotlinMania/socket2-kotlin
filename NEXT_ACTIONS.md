@@ -5,9 +5,9 @@ Based on AST analysis, here are the concrete next steps.
 ## Summary
 
 - **Files Present:** 5/6 (83.3%)
-- **Function parity:** 26/391 matched (target 64) — 6.6%
-- **Class/type parity:** 13/32 matched (target 23) — 40.6%
-- **Combined symbol parity:** 39/423 matched (target 87) — 9.2%
+- **Function parity:** 14/375 matched (target 38) — 3.7%
+- **Class/type parity:** 7/23 matched (target 14) — 30.4%
+- **Combined symbol parity:** 21/398 matched (target 52) — 5.3%
 - **Average inline-code cosine:** 0.11 (function body across 5 matched files)
 - **Average documentation cosine:** 0.45 (doc text across 5 matched files)
 - **Cheat-zeroed Files:** 1
@@ -73,17 +73,6 @@ Every matched file is listed below with function and type symbol parity.
 - **Missing types:** _none_
 - **Tests:** 0/11 matched
 
-### 5. lib
-
-- **Target:** `socket2.Type`
-- **Similarity:** 0.33
-- **Dependents:** 0
-- **Priority Score:** 72506.7
-- **Functions:** 12/16 matched (target 26)
-- **Missing functions:** `from`, `fmt`, `deref`, `deref_mut`
-- **Types:** 6/9 matched
-- **Missing types:** `Type`, `Protocol`, `Target`
-
 ## Success Criteria
 
 For each file to be considered "complete":
@@ -92,4 +81,17 @@ For each file to be considered "complete":
 - All tests ported
 - Documentation ported
 - port-lint header present
+
+## Reexport / Wiring Modules
+
+These files match `reexport_modules` patterns in `.ast_distance_config.json`. They are filtered out of
+normal priority and missing-file ladders because they are wiring
+modules, not direct logic ports. Consult them for call-site routing;
+do not treat them as the next implementation target by default.
+
+### Matched
+
+| Source | Target | Path |
+|--------|--------|------|
+| `lib` | `socket2.Type` | `lib` |
 
