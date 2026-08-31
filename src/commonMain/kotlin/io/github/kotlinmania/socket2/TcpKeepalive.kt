@@ -1,4 +1,4 @@
-// port-lint: source lib.rs
+// port-lint: source socket2/src/lib.rs
 package io.github.kotlinmania.socket2
 
 import kotlin.time.Duration
