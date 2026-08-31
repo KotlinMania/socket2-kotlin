@@ -1,4 +1,4 @@
-// port-lint: tests sys/unix.rs
+// port-lint: tests socket2/src/sys/unix.rs
 package io.github.kotlinmania.socket2
 
 import kotlin.test.Test
