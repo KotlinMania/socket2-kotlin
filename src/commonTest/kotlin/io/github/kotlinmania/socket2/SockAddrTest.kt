@@ -122,4 +122,92 @@ class SockAddrTest {
         val addr = SockAddr.new(storage, 128u)
         assertTrue(addr.toString().contains("SockAddr"))
     }
+
+    @Test
+    fun ipv4() {
+        val std = Socket2SocketAddress.V4("1.2.3.4", 9876)
+        val addr = SockAddr.from(std)
+        assertTrue(addr.isIpv4())
+        assertFalse(addr.isIpv6())
+        assertFalse(addr.isUnix())
+        assertEquals(AF_INET.toUShort(), addr.family())
+        assertEquals(Domain.IPV4, addr.domain())
+        assertEquals(std, addr.asSocketIpv4())
+        assertEquals(null, addr.asSocketIpv6())
+    }
+
+    @Test
+    fun ipv6() {
+        val std = Socket2SocketAddress.V6("1:2:3:4:5:6:7:8", 9876, flow = 11u, scope = 12u)
+        val addr = SockAddr.from(std)
+        assertTrue(addr.isIpv6())
+        assertFalse(addr.isIpv4())
+        assertFalse(addr.isUnix())
+        assertEquals(AF_INET6.toUShort(), addr.family())
+        assertEquals(Domain.IPV6, addr.domain())
+        assertEquals(null, addr.asSocketIpv4())
+        assertEquals(std, addr.asSocketIpv6())
+    }
+
+    @Test
+    fun ipv4Eq() {
+        val std1 = Socket2SocketAddress.V4("1.2.3.4", 9876)
+        val std2 = Socket2SocketAddress.V4("5.6.7.8", 8765)
+        testEq(SockAddr.from(std1), SockAddr.from(std1), SockAddr.from(std2))
+    }
+
+    @Test
+    fun ipv4Hash() {
+        val std1 = Socket2SocketAddress.V4("1.2.3.4", 9876)
+        val std2 = Socket2SocketAddress.V4("5.6.7.8", 8765)
+        testHash(SockAddr.from(std1), SockAddr.from(std1), SockAddr.from(std2))
+    }
+
+    @Test
+    fun ipv6Eq() {
+        val std1 = Socket2SocketAddress.V6("1:2:3:4:5:6:7:8", 9876, flow = 11u, scope = 12u)
+        val std2 = Socket2SocketAddress.V6("3:4:5:6:7:8:9:0", 7654, flow = 13u, scope = 14u)
+        testEq(SockAddr.from(std1), SockAddr.from(std1), SockAddr.from(std2))
+    }
+
+    @Test
+    fun ipv6Hash() {
+        val std1 = Socket2SocketAddress.V6("1:2:3:4:5:6:7:8", 9876, flow = 11u, scope = 12u)
+        val std2 = Socket2SocketAddress.V6("3:4:5:6:7:8:9:0", 7654, flow = 13u, scope = 14u)
+        testHash(SockAddr.from(std1), SockAddr.from(std1), SockAddr.from(std2))
+    }
+
+    @Test
+    fun ipv4Ipv6Eq() {
+        val std1 = Socket2SocketAddress.V4("1.2.3.4", 9876)
+        val std2 = Socket2SocketAddress.V6("1:2:3:4:5:6:7:8", 9876, flow = 11u, scope = 12u)
+        testEq(SockAddr.from(std1), SockAddr.from(std1), SockAddr.from(std2))
+        testEq(SockAddr.from(std2), SockAddr.from(std2), SockAddr.from(std1))
+    }
+
+    @Test
+    fun ipv4Ipv6Hash() {
+        val std1 = Socket2SocketAddress.V4("1.2.3.4", 9876)
+        val std2 = Socket2SocketAddress.V6("1:2:3:4:5:6:7:8", 9876, flow = 11u, scope = 12u)
+        testHash(SockAddr.from(std1), SockAddr.from(std1), SockAddr.from(std2))
+        testHash(SockAddr.from(std2), SockAddr.from(std2), SockAddr.from(std1))
+    }
+
+    private fun testEq(a0: SockAddr, a1: SockAddr, b: SockAddr) {
+        assertEquals(a0, a0)
+        assertEquals(a0, a1)
+        assertEquals(a1, a0)
+        assertNotEquals(a0, b)
+        assertNotEquals(b, a0)
+    }
+
+    private fun testHash(a0: SockAddr, a1: SockAddr, b: SockAddr) {
+        assertEquals(calculateHash(a0), calculateHash(a0))
+        assertEquals(calculateHash(a0), calculateHash(a1))
+        assertNotEquals(calculateHash(a0), calculateHash(b))
+    }
+
+    private fun calculateHash(x: SockAddr): Int {
+        return x.hashCode()
+    }
 }

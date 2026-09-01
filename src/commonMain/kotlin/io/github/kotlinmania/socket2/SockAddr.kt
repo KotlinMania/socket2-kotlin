@@ -40,6 +40,11 @@ public data class SockAddrStorage(
         // Total storage size: 2 bytes for family + 126 bytes padding = 128 bytes
         return 128u
     }
+
+    /**
+     * Formats this storage for debugging. Upstream `fmt::Debug::fmt`.
+     */
+    public fun fmt(): String = toString()
 }
 
 /**
@@ -65,6 +70,26 @@ public data class SockAddr internal constructor(
          * and length correctly.
          */
         public fun new(storage: SockAddrStorage, len: SocklenT): SockAddr = SockAddr(storage.storage, len)
+
+        /**
+         * Constructs a `SockAddr` with the family `AF_UNIX` and the provided path.
+         */
+        public fun unix(path: String): Result<SockAddr> = sockAddrUnix(path)
+
+        /**
+         * Converts a [Socket2SocketAddress] into a [SockAddr].
+         */
+        public fun from(addr: Socket2SocketAddress): SockAddr = addr.toSockAddr()
+
+        /**
+         * Converts a [Socket2SocketAddress.V4] into a [SockAddr].
+         */
+        public fun from(addr: Socket2SocketAddress.V4): SockAddr = addr.toSockAddr()
+
+        /**
+         * Converts a [Socket2SocketAddress.V6] into a [SockAddr].
+         */
+        public fun from(addr: Socket2SocketAddress.V6): SockAddr = addr.toSockAddr()
     }
 
     /**
@@ -83,9 +108,24 @@ public data class SockAddr internal constructor(
     public fun len(): SocklenT = length
 
     /**
+     * Set the length of the address.
+     */
+    public fun setLength(length: SocklenT): SockAddr = SockAddr(storage, length)
+
+    /**
      * Returns the address as the storage.
      */
     public fun asStorage(): SockAddrStorage = SockAddrStorage(storage)
+
+    /**
+     * Returns the raw initialized bytes of the address. Upstream `as_bytes`.
+     */
+    public fun asBytes(): ByteArray = storage.padding
+
+    /**
+     * Formats this address for debugging. Upstream `fmt::Debug::fmt`.
+     */
+    public fun fmt(): String = toString()
 
     /**
      * Returns true if this address is in the `AF_INET` (IPv4) family, false otherwise.
@@ -122,6 +162,11 @@ public data class SockAddr internal constructor(
         }
 
     /**
+     * Upstream alias for [asSocketIpv4].
+     */
+    public fun ipv4(): Socket2SocketAddress.V4? = asSocketIpv4()
+
+    /**
      * Converts this address to a [Socket2SocketAddress.V6] if it is in the `AF_INET6` family.
      */
     public fun asSocketIpv6(): Socket2SocketAddress.V6? =
@@ -129,6 +174,11 @@ public data class SockAddr internal constructor(
             is Socket2SocketAddress.V6 -> addr
             else -> null
         }
+
+    /**
+     * Upstream alias for [asSocketIpv6].
+     */
+    public fun ipv6(): Socket2SocketAddress.V6? = asSocketIpv6()
 
     override fun toString(): String = "SockAddr(family=${storage.ssFamily}, len=$length)"
 }

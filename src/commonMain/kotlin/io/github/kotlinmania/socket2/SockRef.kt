@@ -57,5 +57,15 @@ public class SockRef(
      */
     public fun close(): Result<Unit> = socket.close()
 
+    /**
+     * Returns the underlying [Socket]. Upstream `Deref::deref`.
+     */
+    public fun deref(): Socket = socket
+
+    /**
+     * Formats this reference for debugging. Upstream `fmt::Debug::fmt`.
+     */
+    public fun fmt(): String = toString()
+
     override fun toString(): String = "SockRef(socket=$socket)"
 }
