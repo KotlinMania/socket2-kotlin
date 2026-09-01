@@ -1,8 +1,6 @@
 // port-lint: source sockaddr.rs
 package io.github.kotlinmania.socket2
 
-import java.io.IOException
-
 public actual fun sockAddrUnix(path: String): Result<SockAddr> {
     val pathBytes = path.encodeToByteArray()
     if (pathBytes.size >= 108) {

@@ -207,7 +207,5 @@ class SockAddrTest {
         assertNotEquals(calculateHash(a0), calculateHash(b))
     }
 
-    private fun calculateHash(x: SockAddr): Int {
-        return x.hashCode()
-    }
+    private fun calculateHash(x: SockAddr): Int = x.hashCode()
 }
