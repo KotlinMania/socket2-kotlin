@@ -4,10 +4,10 @@ Based on AST analysis, here are the concrete next steps.
 
 ## Summary
 
-- **Files Present:** 5/6 (83.3%)
-- **Function parity:** 14/375 matched (target 38) — 3.7%
-- **Class/type parity:** 7/23 matched (target 14) — 30.4%
-- **Combined symbol parity:** 21/398 matched (target 52) — 5.3%
+- **Files Present:** 5/7 (71.4%)
+- **Function parity:** 14/378 matched (target 38) — 3.7%
+- **Class/type parity:** 7/17 matched (target 14) — 41.2%
+- **Combined symbol parity:** 21/395 matched (target 52) — 5.3%
 - **Average inline-code cosine:** 0.05 (function body across 4 matched files)
 - **Average documentation cosine:** 0.43 (doc text across 4 matched files)
 - **Cheat-zeroed Files:** 1
@@ -27,7 +27,7 @@ No missing high-value files detected.
 
 Every matched file is listed below with function and type symbol parity.
 
-### 1. socket
+### 1. socket2.socket
 
 - **Target:** `socket2.Socket [PROVENANCE-FALLBACK]`
 - **Similarity:** 0.00
@@ -37,15 +37,13 @@ Every matched file is listed below with function and type symbol parity.
 - **Missing functions:** `from_raw`, `as_raw`, `into_raw`, `new`, `new_raw`, `pair`, `pair_raw`, `bind`, `connect`, `connect_timeout`, `listen`, `accept`, `accept_raw`, `local_addr`, `peer_addr`, `r#type`, `try_clone`, `nonblocking`, `set_nonblocking`, `shutdown`, `recv`, `recv_out_of_band`, `recv_with_flags`, `recv_vectored`, `recv_vectored_with_flags`, `peek`, `recv_from`, `recv_from_with_flags`, `recv_from_vectored`, `recv_from_vectored_with_flags`, `peek_from`, `peek_sender`, `recvmsg`, `send`, `send_with_flags`, `send_vectored`, `send_vectored_with_flags`, `send_out_of_band`, `send_to`, `send_to_with_flags`, `send_to_vectored`, `send_to_vectored_with_flags`, `sendmsg`, `set_common_type`, `set_common_flags`, `set_common_accept_flags`, `broadcast`, `set_broadcast`, `take_error`, `keepalive`, `set_keepalive`, `linger`, `set_linger`, `out_of_band_inline`, `set_out_of_band_inline`, `passcred`, `set_passcred`, `priority`, `set_priority`, `recv_buffer_size`, `set_recv_buffer_size`, `read_timeout`, `set_read_timeout`, `reuse_address`, `set_reuse_address`, `send_buffer_size`, `set_send_buffer_size`, `write_timeout`, `set_write_timeout`, `from_linger`, `into_linger`, `header_included_v4`, `set_header_included_v4`, `ip_transparent_v4`, `set_ip_transparent_v4`, `join_multicast_v4`, `leave_multicast_v4`, `join_multicast_v4_n`, `leave_multicast_v4_n`, `join_ssm_v4`, `leave_ssm_v4`, `multicast_all_v4`, `set_multicast_all_v4`, `multicast_if_v4`, `set_multicast_if_v4`, `multicast_loop_v4`, `set_multicast_loop_v4`, `multicast_ttl_v4`, `set_multicast_ttl_v4`, `ttl_v4`, `set_ttl_v4`, `set_tos_v4`, `tos_v4`, `set_recv_tos_v4`, `recv_tos_v4`, `original_dst_v4`, `header_included_v6`, `set_header_included_v6`, `join_multicast_v6`, `leave_multicast_v6`, `multicast_hops_v6`, `set_multicast_hops_v6`, `multicast_all_v6`, `set_multicast_all_v6`, `multicast_if_v6`, `set_multicast_if_v6`, `multicast_loop_v6`, `set_multicast_loop_v6`, `unicast_hops_v6`, `set_unicast_hops_v6`, `only_v6`, `set_only_v6`, `recv_tclass_v6`, `set_recv_tclass_v6`, `recv_hoplimit_v6`, `set_recv_hoplimit_v6`, `original_dst_v6`, `tcp_keepalive_time`, `tcp_keepalive_interval`, `tcp_keepalive_retries`, `set_tcp_keepalive`, `tcp_nodelay`, `set_tcp_nodelay`, `read`, `read_vectored`, `write`, `write_vectored`, `flush`, `fmt`
 - **Types:** 1/2 matched
 - **Missing types:** `InterfaceIndexOrAddress`
-- **Provenance warning:** port-lint provenance header matched only after fallback normalization: `socket2/src/socket.rs` vs expected `socket.rs`
 - **Provenance warning:** port-lint provenance header matched only by basename: `tests:socket2/tests/socket.rs` vs expected `socket.rs`
-- **Proposed provenance header:** `// port-lint: source socket.rs` (current: `// port-lint: source socket2/src/socket.rs`)
 - **Proposed provenance header:** `// port-lint: tests socket.rs` (current: `// port-lint: tests socket2/tests/socket.rs`)
-- **Lint issues:** 2
+- **Lint issues:** 1
 
 ### 2. sys.unix
 
-- **Target:** `socket2.Shutdown [PROVENANCE-FALLBACK]`
+- **Target:** `socket2.Shutdown`
 - **Similarity:** 0.00
 - **Dependents:** 0
 - **Priority Score:** 1515110.0
@@ -54,17 +52,10 @@ Every matched file is listed below with function and type symbol parity.
 - **Types:** 1/8 matched (target 3)
 - **Missing types:** `Bool`, `IovLen`, `MaybeUninitSlice`, `Socket`, `SockFilter`, `CcidEndpoints`, `Target`
 - **Tests:** 0/2 matched
-- **Provenance warning:** port-lint provenance header matched only after fallback normalization: `socket2/src/sys/unix.rs` vs expected `sys/unix.rs`
-- **Provenance warning:** port-lint provenance header matched only after fallback normalization: `socket2/src/sys/unix.rs` vs expected `sys/unix.rs`
-- **Provenance warning:** port-lint provenance header matched only after fallback normalization: `tests:socket2/src/sys/unix.rs` vs expected `sys/unix.rs`
-- **Proposed provenance header:** `// port-lint: source sys/unix.rs` (current: `// port-lint: source socket2/src/sys/unix.rs`)
-- **Proposed provenance header:** `// port-lint: source sys/unix.rs` (current: `// port-lint: source socket2/src/sys/unix.rs`)
-- **Proposed provenance header:** `// port-lint: tests sys/unix.rs` (current: `// port-lint: tests socket2/src/sys/unix.rs`)
-- **Lint issues:** 3
 
-### 3. sockref
+### 3. socket2.sockref
 
-- **Target:** `socket2.SockRef [PROVENANCE-FALLBACK]`
+- **Target:** `socket2.SockRef`
 - **Similarity:** 0.21
 - **Dependents:** 1
 - **Priority Score:** 1030507.9
@@ -72,13 +63,10 @@ Every matched file is listed below with function and type symbol parity.
 - **Missing functions:** `deref`, `fmt`
 - **Types:** 1/2 matched (target 1)
 - **Missing types:** `Target`
-- **Provenance warning:** port-lint provenance header matched only after fallback normalization: `socket2/src/sockref.rs` vs expected `sockref.rs`
-- **Proposed provenance header:** `// port-lint: source sockref.rs` (current: `// port-lint: source socket2/src/sockref.rs`)
-- **Lint issues:** 1
 
-### 4. sockaddr
+### 4. socket2.sockaddr
 
-- **Target:** `socket2.SockAddr [ZERO] [PROVENANCE-FALLBACK]`
+- **Target:** `socket2.SockAddr [ZERO]`
 - **Similarity:** 0.00
 - **Dependents:** 0
 - **Priority Score:** 213810.0
@@ -87,11 +75,6 @@ Every matched file is listed below with function and type symbol parity.
 - **Types:** 4/4 matched (target 8)
 - **Missing types:** _none_
 - **Tests:** 0/11 matched
-- **Provenance warning:** port-lint provenance header matched only after fallback normalization: `socket2/src/sockaddr.rs` vs expected `sockaddr.rs`
-- **Provenance warning:** port-lint provenance header matched only after fallback normalization: `tests:socket2/src/sockaddr.rs` vs expected `sockaddr.rs`
-- **Proposed provenance header:** `// port-lint: source sockaddr.rs` (current: `// port-lint: source socket2/src/sockaddr.rs`)
-- **Proposed provenance header:** `// port-lint: tests sockaddr.rs` (current: `// port-lint: tests socket2/src/sockaddr.rs`)
-- **Lint issues:** 2
 
 ## Success Criteria
 
@@ -113,5 +96,11 @@ do not treat them as the next implementation target by default.
 
 | Source | Target | Path |
 |--------|--------|------|
-| `lib` | `socket2.Type` | `lib` |
+| `socket2.lib` | `socket2.Type` | `socket2/src/lib` |
+
+### Missing
+
+| Source | Expected target | Deps | Source path | Expected path |
+|--------|-----------------|------|-------------|---------------|
+| `sys.windows` | `socket2.src.sys.Windows` | 0 | `socket2/src/sys/windows.rs` | `socket2/src/sys/Windows.kt` |
 

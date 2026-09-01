@@ -17,7 +17,15 @@
   },
   "reexport_modules": [
     "lib",
+    "lib.rs",
+    "socket2/src/lib.rs",
     "sys/windows",
-    "sys.windows"
+    "sys.windows",
+    "sys/windows.rs",
+    "socket2/src/sys/windows.rs",
+    "sys/unix",
+    "sys.unix",
+    "sys/unix.rs",
+    "socket2/src/sys/unix.rs"
   ]
 }
