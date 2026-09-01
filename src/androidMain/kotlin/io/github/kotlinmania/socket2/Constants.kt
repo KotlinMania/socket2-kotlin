@@ -1,4 +1,4 @@
-// port-lint: source socket2/src/lib.rs
+// port-lint: source lib.rs
 package io.github.kotlinmania.socket2
 
 internal actual val SOCK_STREAM: Int = 1

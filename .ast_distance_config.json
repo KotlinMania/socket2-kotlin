@@ -2,7 +2,7 @@
   "type": "port",
   "name": "socket2-kotlin",
   "source": {
-    "path": "tmp",
+    "path": "tmp/socket2/src",
     "lang": "rust"
   },
   "target": {

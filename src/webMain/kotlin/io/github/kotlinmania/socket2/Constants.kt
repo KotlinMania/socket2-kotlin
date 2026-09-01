@@ -1,4 +1,4 @@
-// port-lint: source socket2/src/lib.rs
+// port-lint: source lib.rs
 package io.github.kotlinmania.socket2
 
 // Browser/wasmJs constants — POSIX values (browser targets don't use
