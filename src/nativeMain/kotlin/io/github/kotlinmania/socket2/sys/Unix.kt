@@ -7,8 +7,10 @@ import io.github.kotlinmania.socket2.SockaddrStorage
 import io.github.kotlinmania.socket2.cinterop.socket2_accept
 import io.github.kotlinmania.socket2.cinterop.socket2_addr_storage_free
 import io.github.kotlinmania.socket2.cinterop.socket2_addr_storage_get_family
+import io.github.kotlinmania.socket2.cinterop.socket2_addr_storage_get_padding
 import io.github.kotlinmania.socket2.cinterop.socket2_addr_storage_new
 import io.github.kotlinmania.socket2.cinterop.socket2_addr_storage_set_family
+import io.github.kotlinmania.socket2.cinterop.socket2_addr_storage_set_padding
 import io.github.kotlinmania.socket2.cinterop.socket2_bind
 import io.github.kotlinmania.socket2.cinterop.socket2_close
 import io.github.kotlinmania.socket2.cinterop.socket2_connect
@@ -20,11 +22,13 @@ import io.github.kotlinmania.socket2.cinterop.socket2_send
 import io.github.kotlinmania.socket2.cinterop.socket2_shutdown
 import io.github.kotlinmania.socket2.cinterop.socket2_socket
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.UByteVar
 import kotlinx.cinterop.UIntVar
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.alloc
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
+import kotlinx.cinterop.reinterpret
 import kotlinx.cinterop.toKString
 import kotlinx.cinterop.usePinned
 import kotlinx.cinterop.value
@@ -66,8 +70,13 @@ internal actual fun bind(fd: RawSocket, addr: SockAddr): Result<Unit> {
         // Set family
         socket2_addr_storage_set_family(storage, addr.storage.ssFamily)
 
-        // Copy the rest of the address data
-        // TODO: Properly populate address fields based on family
+        // Copy the rest of the address data from padding
+        val padding = addr.storage.padding
+        val paddingLen = padding.size.toUInt()
+        padding.usePinned { pinned ->
+            val paddingPtr = pinned.addressOf(0).reinterpret<UByteVar>()
+            socket2_addr_storage_set_padding(storage, paddingPtr, paddingLen)
+        }
 
         val result = socket2_bind(fd.fd, storage, addr.len())
         return if (result == -1) {
@@ -90,8 +99,13 @@ internal actual fun connect(fd: RawSocket, addr: SockAddr): Result<Unit> {
         // Set family
         socket2_addr_storage_set_family(storage, addr.storage.ssFamily)
 
-        // Copy the rest of the address data
-        // TODO: Properly populate address fields based on family
+        // Copy the rest of the address data from padding
+        val padding = addr.storage.padding
+        val paddingLen = padding.size.toUInt()
+        padding.usePinned { pinned ->
+            val paddingPtr = pinned.addressOf(0).reinterpret<UByteVar>()
+            socket2_addr_storage_set_padding(storage, paddingPtr, paddingLen)
+        }
 
         val result = socket2_connect(fd.fd, storage, addr.len())
         return if (result == -1) {
@@ -136,10 +150,16 @@ internal actual fun accept(fd: RawSocket): Result<Pair<RawSocket, SockAddr>> =
             } else {
                 // Extract family and convert to SockAddr
                 val family = socket2_addr_storage_get_family(storage)
+                val padding = ByteArray(126)
+                val paddingLen = padding.size.toUInt()
+                padding.usePinned { pinned ->
+                    val paddingPtr = pinned.addressOf(0).reinterpret<UByteVar>()
+                    socket2_addr_storage_get_padding(storage, paddingPtr, paddingLen)
+                }
                 val kotlinStorage =
                     SockaddrStorage(
                         ssFamily = family,
-                        padding = ByteArray(126), // TODO: Extract full address data
+                        padding = padding,
                     )
                 val sockAddrStorage = SockAddrStorage(kotlinStorage)
                 val addr = SockAddr.new(sockAddrStorage, addrLen.value)

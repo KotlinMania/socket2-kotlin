@@ -9,7 +9,7 @@ package io.github.kotlinmania.socket2
  * - Same syscalls: socket(2), bind(2), connect(2), etc.
  * - Full control over socket behavior
  */
-@JsModule("@socket2-kotlin/native-bindings")
+@JsModule("@kotlinmania/socket2-native-bindings")
 @JsNonModule
 external object Socket2Native {
     // Core socket functions - direct syscall bindings
@@ -162,12 +162,21 @@ public actual class Socket internal constructor(
             val result = Socket2Native.accept(socketFd)
             val newFd = result.asDynamic().fd as Int
 
-            // TODO: Properly parse address from result.address
-            val storage = SockaddrStorage(
-                ssFamily = 2u.toUShort(),
-                padding = ByteArray(126)
-            )
-            val addr = SockAddr.new(SockAddrStorage(storage), 16u)
+            val address = (result.asDynamic().address as? String) ?: ""
+            val port = (result.asDynamic().port as? Int) ?: 0
+            val addr =
+                if (address.contains(':')) {
+                    Socket2SocketAddress.V6(address, port).toSockAddr()
+                } else if (address.isNotEmpty()) {
+                    Socket2SocketAddress.V4(address, port).toSockAddr()
+                } else {
+                    val storage =
+                        SockaddrStorage(
+                            ssFamily = 2u.toUShort(),
+                            padding = ByteArray(126),
+                        )
+                    SockAddr.new(SockAddrStorage(storage), 16u)
+                }
 
             Result.success(Pair(Socket(newFd), addr))
         } catch (e: Throwable) {

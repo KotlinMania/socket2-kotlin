@@ -45,6 +45,21 @@ public data class SockAddrStorage(
      * Formats this storage for debugging. Upstream `fmt::Debug::fmt`.
      */
     public fun fmt(): String = toString()
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+        other as SockAddrStorage
+        if (storage.ssFamily != other.storage.ssFamily) return false
+        if (!storage.padding.contentEquals(other.storage.padding)) return false
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = storage.ssFamily.hashCode()
+        result = 31 * result + storage.padding.contentHashCode()
+        return result
+    }
 }
 
 /**
@@ -181,6 +196,23 @@ public data class SockAddr internal constructor(
     public fun ipv6(): Socket2SocketAddress.V6? = asSocketIpv6()
 
     override fun toString(): String = "SockAddr(family=${storage.ssFamily}, len=$length)"
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+        other as SockAddr
+        if (length != other.length) return false
+        if (storage.ssFamily != other.storage.ssFamily) return false
+        if (!storage.padding.contentEquals(other.storage.padding)) return false
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = storage.ssFamily.hashCode()
+        result = 31 * result + storage.padding.contentHashCode()
+        result = 31 * result + length.hashCode()
+        return result
+    }
 }
 
 /**
