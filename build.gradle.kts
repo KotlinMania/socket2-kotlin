@@ -7,9 +7,6 @@ import org.gradle.api.tasks.testing.AbstractTestTask
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.gradle.kotlin.dsl.support.serviceOf
-import org.gradle.language.cpp.tasks.CppCompile
-import org.gradle.nativeplatform.Linkage
-import org.gradle.nativeplatform.tasks.CreateStaticLibrary
 import org.gradle.plugins.signing.Sign
 import org.gradle.process.ExecOperations
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
@@ -43,10 +40,6 @@ plugins {
     alias(libs.plugins.ktlint)
     alias(libs.plugins.kotlinx.benchmark)
     alias(libs.plugins.kotlin.allopen)
-    `cpp-library`
-    // First-party publishing. The convenience publishing plugin rejects
-    // cpp-library's native publication at configuration time. maven-publish
-    // coexists with cpp-library; Central Portal upload is a bespoke task.
     `maven-publish`
     signing
 }
@@ -361,61 +354,6 @@ val jvmToolchainVersion = providers.gradleProperty("jvm.toolchain").getOrElse("2
 // ============================================================================
 
 // ============================================================================
-// C++ Wrapper Compilation for Native Interop
-// ----------------------------------------------------------------------------
-// Gradle's cpp-library plugin compiles the socket2 C++ wrapper as a static
-// library, which cinterop then bundles into the produced klib. Source lives in
-// src/nativeInterop/cinterop (not the plugin default src/main/cpp), so the
-// source/header dirs are set explicitly. STATIC linkage gives cinterop a
-// libsocket2_wrapper.a to bundle (no runtime .dylib dependency).
-// ============================================================================
-library {
-    baseName.set("socket2_wrapper")
-
-    // Source files
-    source.from(file("src/nativeInterop/cinterop/socket2_wrapper.cpp"))
-
-    // Private headers
-    privateHeaders.from(file("src/nativeInterop/cinterop"))
-
-    // Static linkage so cinterop can bundle the archive directly.
-    linkage.set(listOf(Linkage.STATIC))
-
-    // Declare every host-native machine our CI runners cover. Gradle's
-    // cpp-library plugin CANNOT cross-compile — it only builds the variant
-    // matching the build host and creates no tasks for the others. So the
-    // macOS runner builds macОS, the Linux runner builds Linux, the Windows
-    // runner builds Windows; each is a host-native compile, never a cross.
-    // (Ref: Gradle cpp_library_plugin docs — cross-compilation unsupported.)
-    targetMachines.set(
-        listOf(
-            machines.macOS.architecture("aarch64"),
-            machines.macOS.x86_64,
-            machines.linux.x86_64,
-            machines.linux.architecture("aarch64"),
-            machines.windows.x86_64,
-        ),
-    )
-}
-
-tasks.withType<CppCompile>().configureEach {
-    compilerArgs.addAll("-std=c++17", "-fPIC")
-
-    // Platform-specific args, resolved lazily — the plugin sets targetPlatform
-    // after this configureEach runs, so querying it eagerly fails.
-    compilerArgs.addAll(
-        targetPlatform.map { platform ->
-            if (platform.operatingSystem.isMacOsX) listOf("-stdlib=libc++") else emptyList()
-        },
-    )
-}
-
-// Ensure the static library is built before any cinterop task runs.
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.CInteropProcess>().configureEach {
-    dependsOn(tasks.withType<CreateStaticLibrary>())
-}
-
-// ============================================================================
 kotlin {
     jvmToolchain(jvmToolchainVersion)
 
@@ -484,10 +422,7 @@ kotlin {
         configureBenchmarkCompilation()
         addToXcf()
     }
-    watchosArm64 {
-        configureBenchmarkCompilation()
-        addToXcf()
-    }
+    // watchosArm64 (WatchOS 32 / arm64_32): retired by workspace policy (§5.5.1). WatchOS 32 is not supported.
     watchosDeviceArm64 {
         configureBenchmarkCompilation()
         addToXcf()
@@ -810,6 +745,16 @@ tasks
         dependsOn(buildNativeBindings)
     }
 
+val copyNodeSocket =
+    tasks.register<Copy>("copyNodeSocket") {
+        dependsOn(buildNativeBindings)
+        from("native/node-socket")
+        into(layout.buildDirectory.dir("js/node_modules/@kotlinmania/socket2-native-bindings"))
+    }
+tasks.matching { it.name.startsWith("jsNodeTest") || it.name.startsWith("wasmJsNodeTest") }.configureEach {
+    dependsOn(copyNodeSocket)
+}
+
 // ============================================================================
 // Maven Central publishing — Central Portal, first-party + bespoke upload
 // ----------------------------------------------------------------------------
@@ -830,13 +775,8 @@ val emptyJavadocJar by tasks.registering(Jar::class) {
     archiveClassifier.set("javadoc")
 }
 
-// The cpp-library plugin registers a native publication named "main" (artifactId
-// socket2_wrapper). It is internal tooling consumed by cinterop — never shipped
-// to Maven Central — so it is excluded from POM config, staging, and the bundle.
-val cppLibraryPublicationName = "main"
-
 publishing {
-    publications.withType<MavenPublication>().matching { !it.name.startsWith(cppLibraryPublicationName) }.configureEach {
+    publications.withType<MavenPublication>().configureEach {
         artifact(emptyJavadocJar)
         pom {
             name.set(publishProjectName)
@@ -888,24 +828,18 @@ signing {
     val signingEnabled = project.findProperty("RELEASE_SIGNING_ENABLED") != "false" && signingKey != null
     if (signingEnabled) {
         useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
-        sign(publishing.publications.matching { !it.name.startsWith(cppLibraryPublicationName) })
+        sign(publishing.publications)
     }
 }
 
 val centralPortalPublishTasks =
     tasks.withType<PublishToMavenRepository>().matching {
-        it.name.endsWith("ToCentralPortalStagingRepository") && !it.name.startsWith("publishMain")
+        it.name.endsWith("ToCentralPortalStagingRepository")
     }
 
 centralPortalPublishTasks.configureEach {
     dependsOn(tasks.withType<Sign>())
 }
-
-// Never stage/publish the C++ wrapper publication to Maven Central.
-tasks
-    .matching {
-        it.name.startsWith("publishMain") && it.name.contains("Publication")
-    }.configureEach { enabled = false }
 
 // Zip the staged Maven layout into a single Central Portal deployment bundle.
 val centralPortalBundle by tasks.registering(Zip::class) {
@@ -1130,7 +1064,7 @@ tasks.register("swiftExportSmokeTest") {
                         "CONFIGURATION" to "Debug",
                         "ARCHS" to "arm64",
                         "FRAMEWORKS_FOLDER_PATH" to "Frameworks",
-                        "MACOSX_DEPLOYMENT_TARGET" to "14.0",
+                        "MACOSX_DEPLOYMENT_TARGET" to "15.0",
                         "DEPLOYMENT_TARGET_SETTING_NAME" to "MACOSX_DEPLOYMENT_TARGET",
                     ),
                 )
@@ -1142,15 +1076,18 @@ tasks.register("swiftExportSmokeTest") {
                 .get()
                 .asFile
         if (generatedPackageSwift.exists()) {
-            val text = generatedPackageSwift.readText()
-            if (!text.contains("platforms:")) {
-                generatedPackageSwift.writeText(
+            var text = generatedPackageSwift.readText()
+            text = text.replace("// swift-tools-version: 5.9", "// swift-tools-version: 6.0")
+            val updated =
+                if (text.contains("platforms:")) {
+                    text.replace(Regex("""platforms:\s*\[\s*\.macOS\(\.v\d+\)\s*\]"""), "platforms: [.macOS(.v15)]")
+                } else {
                     text.replaceFirst(
                         Regex("""(let package = Package\s*\(\s*name:\s*"[^"]*",|Package\(\s*name:\s*"[^"]*",)"""),
-                        "$1\n    platforms: [.macOS(.v14)],",
-                    ),
-                )
-            }
+                        "$1\n    platforms: [.macOS(.v15)],",
+                    )
+                }
+            generatedPackageSwift.writeText(updated)
         }
 
         execOperations
@@ -1162,7 +1099,7 @@ tasks.register("swiftExportSmokeTest") {
         execOperations
             .exec {
                 workingDir = layout.projectDirectory.dir("swift-test-harness").asFile
-                commandLine("swift", "test")
+                commandLine("swift", "test", "-Xswiftc", "-swift-version", "-Xswiftc", "5")
             }.assertNormalExitValue()
     }
 }
@@ -1189,7 +1126,6 @@ val nativeTargetNames =
         "mingwX64",
         "tvosArm64",
         "tvosSimulatorArm64",
-        "watchosArm64",
         "watchosDeviceArm64",
         "watchosSimulatorArm64",
     )

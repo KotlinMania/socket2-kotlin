@@ -16,6 +16,5 @@ dependencyResolutionManagement {
 }
 
 // rootProject.name only — no composite-build includes.
-// socket2-kotlin's commonMain types (SockaddrStorage, Msghdr, Iovec, AF_*
-// constants) are defined locally in LibcTypes.kt; no sibling dependency.
+// socket2-kotlin consumes published io.github.kotlinmania:libc-kotlin:0.1.3 from Maven Central.
 rootProject.name = "socket2-kotlin"
