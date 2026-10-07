@@ -159,6 +159,47 @@ public data class SockAddr internal constructor(
     public fun isUnix(): Boolean = storage.ssFamily == AF_UNIX.toUShort()
 
     /**
+     * Returns true if this address is an unnamed address from the `AF_UNIX` family, false otherwise.
+     */
+    public fun isUnnamed(): Boolean {
+        if (!isUnix()) return false
+        val pathBytes = asBytes()
+        return len() <= 2u || (pathBytes.isNotEmpty() && pathBytes[0] == 0.toByte() && len() <= 2u)
+    }
+
+    /**
+     * Returns this address as a pathname string if it is an `AF_UNIX` pathname address,
+     * otherwise returns null.
+     */
+    public fun asPathname(): String? {
+        if (!isUnix() || isUnnamed()) return null
+        val pathBytes = asBytes()
+        if (pathBytes.isEmpty() || pathBytes[0] == 0.toByte()) return null
+        val nullIdx = pathBytes.indexOf(0.toByte())
+        val effectiveBytes = if (nullIdx >= 0) pathBytes.copyOfRange(0, nullIdx) else pathBytes
+        return effectiveBytes.decodeToString()
+    }
+
+    /**
+     * Returns this address as bytes representing an abstract namespace address if it is an
+     * `AF_UNIX` abstract address, otherwise returns null.
+     */
+    public fun asAbstractNamespace(): ByteArray? {
+        if (!isUnix() || isUnnamed()) return null
+        val pathBytes = asBytes()
+        if (pathBytes.isEmpty() || pathBytes[0] != 0.toByte()) return null
+        var nullIdx = -1
+        for (i in 1 until pathBytes.size) {
+            if (pathBytes[i] == 0.toByte()) {
+                nullIdx = i
+                break
+            }
+        }
+        val end = if (nullIdx >= 0) nullIdx else pathBytes.size
+        return pathBytes.copyOfRange(1, end)
+    }
+
+    /**
      * Converts this address to a [Socket2SocketAddress] if it is in the `AF_INET` (IPv4)
      * or `AF_INET6` (IPv6) family, otherwise returns null.
      *
@@ -222,6 +263,10 @@ public data class SockAddr internal constructor(
  * Named Socket2SocketAddress to avoid conflicts with platform SocketAddress types.
  */
 public sealed class Socket2SocketAddress {
+    public fun isIpv4(): Boolean = this is V4
+
+    public fun isIpv6(): Boolean = this is V6
+
     /**
      * IPv4 socket address.
      */

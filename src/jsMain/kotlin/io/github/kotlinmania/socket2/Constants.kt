@@ -15,8 +15,24 @@ internal actual val SOCK_SEQPACKET: Int = 5
 internal actual val SOCK_RAW: Int = 3
 
 // Address families/domains - expect declarations in Domain.kt
-internal actual val AF_INET: Int = 2
-internal actual val AF_INET6: Int = 10
+internal actual val AF_INET: Int
+    get() =
+        try {
+            val v: dynamic = Socket2Native.AF_INET
+            if (v != null && js("typeof v === 'number'")) (v as Int) else 2
+        } catch (_: Throwable) {
+            2
+        }
+
+internal actual val AF_INET6: Int
+    get() =
+        try {
+            val v: dynamic = Socket2Native.AF_INET6
+            if (v != null && js("typeof v === 'number'")) (v as Int) else 10
+        } catch (_: Throwable) {
+            10
+        }
+
 internal actual val AF_UNIX: Int = 1
 
 // Protocol numbers - expect declarations in Protocol.kt

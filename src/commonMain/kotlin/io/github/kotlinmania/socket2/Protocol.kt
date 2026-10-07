@@ -11,6 +11,20 @@ package io.github.kotlinmania.socket2
 public data class SocketProtocol(
     public val value: Int,
 ) {
+    override fun toString(): String =
+        when (value) {
+            IPPROTO_ICMP -> "IPPROTO_ICMP"
+            IPPROTO_ICMPV6 -> "IPPROTO_ICMPV6"
+            IPPROTO_TCP -> "IPPROTO_TCP"
+            IPPROTO_UDP -> "IPPROTO_UDP"
+            IPPROTO_MPTCP -> "IPPROTO_MPTCP"
+            IPPROTO_DCCP -> "IPPROTO_DCCP"
+            IPPROTO_SCTP -> "IPPROTO_SCTP"
+            IPPROTO_UDPLITE -> "IPPROTO_UDPLITE"
+            IPPROTO_DIVERT -> "IPPROTO_DIVERT"
+            else -> value.toString()
+        }
+
     public companion object {
         /**
          * Protocol corresponding to `ICMPv4`.
