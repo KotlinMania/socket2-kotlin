@@ -2,7 +2,6 @@
 package io.github.kotlinmania.socket2
 
 import io.github.kotlinmania.libc.SockaddrStorage
-
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
