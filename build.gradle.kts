@@ -1012,7 +1012,7 @@ tasks.matching { it.name.endsWith("GenerateSPMPackage") }.configureEach {
                     packageSwift.writeText(
                         text.replaceFirst(
                             Regex("""(Package\(\s*name:\s*"[^"]*",)"""),
-                            "$1\n    platforms: [.macOS(.v14)],",
+                            "$1\n    platforms: [.macOS(\"15.0\")],",
                         ),
                     )
                 }

@@ -12,6 +12,15 @@ package io.github.kotlinmania.socket2
 public data class Domain(
     public val value: Int,
 ) {
+    override fun toString(): String =
+        when (value) {
+            AF_INET -> "AF_INET"
+            AF_INET6 -> "AF_INET6"
+            AF_UNIX -> "AF_UNIX"
+            0 -> "AF_UNSPEC"
+            else -> value.toString()
+        }
+
     public companion object {
         /**
          * Domain for IPv4 communication, corresponding to `AF_INET`.

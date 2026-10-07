@@ -1,6 +1,8 @@
 // port-lint: source socket.rs
 package io.github.kotlinmania.socket2
 
+import io.github.kotlinmania.libc.SockaddrStorage
+
 /**
  * Node.js N-API native bindings for direct POSIX socket syscalls.
  *
@@ -14,13 +16,21 @@ package io.github.kotlinmania.socket2
 external object Socket2Native {
     // Core socket functions - direct syscall bindings
     fun socket(domain: Int, type: Int, protocol: Int): Int
+
     fun bind(fd: Int, address: dynamic)
+
     fun connect(fd: Int, address: dynamic)
+
     fun listen(fd: Int, backlog: Int)
-    fun accept(fd: Int): dynamic  // Returns { fd: number, address: object }
+
+    fun accept(fd: Int): dynamic // Returns { fd: number, address: object }
+
     fun shutdown(fd: Int, how: Int)
+
     fun close(fd: Int)
-    fun recv(fd: Int, len: Int, flags: Int): dynamic  // Returns Buffer
+
+    fun recv(fd: Int, len: Int, flags: Int): dynamic // Returns Buffer
+
     fun send(fd: Int, buffer: dynamic, flags: Int): Int
 
     // Socket constants
@@ -40,7 +50,7 @@ external object Socket2Native {
  * providing the same level of control as our Kotlin/Native implementation.
  */
 public actual class Socket internal constructor(
-    private var fd: Int?
+    private var fd: Int?,
 ) {
     public actual companion object {
         /**
@@ -48,24 +58,21 @@ public actual class Socket internal constructor(
          *
          * See commonMain/Socket.kt for full documentation.
          */
-        public actual fun new(domain: Domain, type: SocketType, protocol: SocketProtocol?): Result<Socket> {
-            return try {
+        public actual fun new(domain: Domain, type: SocketType, protocol: SocketProtocol?): Result<Socket> =
+            try {
                 val protocolValue = protocol?.value ?: 0
                 val socketFd = Socket2Native.socket(domain.value, type.value, protocolValue)
                 Result.success(Socket(socketFd))
             } catch (e: Throwable) {
                 Result.failure(IOException("socket() failed: ${e.message}"))
             }
-        }
 
         /**
          * Creates a new socket without additional configuration.
          *
          * See commonMain/Socket.kt for full documentation.
          */
-        public actual fun newRaw(domain: Domain, type: SocketType, protocol: SocketProtocol?): Result<Socket> {
-            return new(domain, type, protocol)
-        }
+        public actual fun newRaw(domain: Domain, type: SocketType, protocol: SocketProtocol?): Result<Socket> = new(domain, type, protocol)
     }
 
     /**
@@ -79,20 +86,23 @@ public actual class Socket internal constructor(
             val socketFd = fd ?: return Result.failure(IllegalStateException("Socket already closed"))
             val socketAddr = address.asSocket() ?: return Result.failure(IOException("Invalid address"))
 
-            val addrObj = when (socketAddr) {
-                is Socket2SocketAddress.V4 -> js("{}")
-                    .apply {
-                        this.asDynamic().family = Socket2Native.AF_INET
-                        this.asDynamic().port = socketAddr.port
-                        this.asDynamic().addr = socketAddr.address
-                    }
-                is Socket2SocketAddress.V6 -> js("{}")
-                    .apply {
-                        this.asDynamic().family = Socket2Native.AF_INET6
-                        this.asDynamic().port = socketAddr.port
-                        this.asDynamic().addr = socketAddr.address
-                    }
-            }
+            val addrObj =
+                when (socketAddr) {
+                    is Socket2SocketAddress.V4 ->
+                        js("{}")
+                            .apply {
+                                this.asDynamic().family = Socket2Native.AF_INET
+                                this.asDynamic().port = socketAddr.port
+                                this.asDynamic().addr = socketAddr.address
+                            }
+                    is Socket2SocketAddress.V6 ->
+                        js("{}")
+                            .apply {
+                                this.asDynamic().family = Socket2Native.AF_INET6
+                                this.asDynamic().port = socketAddr.port
+                                this.asDynamic().addr = socketAddr.address
+                            }
+                }
 
             Socket2Native.bind(socketFd, addrObj)
             Result.success(Unit)
@@ -112,20 +122,23 @@ public actual class Socket internal constructor(
             val socketFd = fd ?: return Result.failure(IllegalStateException("Socket already closed"))
             val socketAddr = address.asSocket() ?: return Result.failure(IOException("Invalid address"))
 
-            val addrObj = when (socketAddr) {
-                is Socket2SocketAddress.V4 -> js("{}")
-                    .apply {
-                        this.asDynamic().family = Socket2Native.AF_INET
-                        this.asDynamic().port = socketAddr.port
-                        this.asDynamic().addr = socketAddr.address
-                    }
-                is Socket2SocketAddress.V6 -> js("{}")
-                    .apply {
-                        this.asDynamic().family = Socket2Native.AF_INET6
-                        this.asDynamic().port = socketAddr.port
-                        this.asDynamic().addr = socketAddr.address
-                    }
-            }
+            val addrObj =
+                when (socketAddr) {
+                    is Socket2SocketAddress.V4 ->
+                        js("{}")
+                            .apply {
+                                this.asDynamic().family = Socket2Native.AF_INET
+                                this.asDynamic().port = socketAddr.port
+                                this.asDynamic().addr = socketAddr.address
+                            }
+                    is Socket2SocketAddress.V6 ->
+                        js("{}")
+                            .apply {
+                                this.asDynamic().family = Socket2Native.AF_INET6
+                                this.asDynamic().port = socketAddr.port
+                                this.asDynamic().addr = socketAddr.address
+                            }
+                }
 
             Socket2Native.connect(socketFd, addrObj)
             Result.success(Unit)
@@ -193,11 +206,12 @@ public actual class Socket internal constructor(
     public actual fun shutdown(how: Shutdown): Result<Unit> {
         return try {
             val socketFd = fd ?: return Result.failure(IllegalStateException("Socket already closed"))
-            val howValue = when (how) {
-                Shutdown.Read -> Socket2Native.SHUT_RD
-                Shutdown.Write -> Socket2Native.SHUT_WR
-                Shutdown.Both -> Socket2Native.SHUT_RDWR
-            }
+            val howValue =
+                when (how) {
+                    Shutdown.Read -> Socket2Native.SHUT_RD
+                    Shutdown.Write -> Socket2Native.SHUT_WR
+                    Shutdown.Both -> Socket2Native.SHUT_RDWR
+                }
             Socket2Native.shutdown(socketFd, howValue)
             Result.success(Unit)
         } catch (e: Throwable) {
@@ -270,12 +284,12 @@ public actual class Socket internal constructor(
         }
     }
 
-    override fun toString(): String {
-        return "Socket(fd=$fd)"
-    }
+    override fun toString(): String = "Socket(fd=$fd)"
 }
 
 /**
  * Exception thrown when a socket operation fails.
  */
-class IOException(message: String) : Exception(message)
+class IOException(
+    message: String,
+) : Exception(message)

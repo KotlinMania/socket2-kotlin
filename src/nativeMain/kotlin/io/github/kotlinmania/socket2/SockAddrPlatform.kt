@@ -1,6 +1,9 @@
 // port-lint: source sockaddr.rs
 package io.github.kotlinmania.socket2
 
+import io.github.kotlinmania.libc.SockaddrStorage
+import io.github.kotlinmania.libc.SockaddrUn
+
 /**
  * Platform-specific implementation of SockAddr for macOS ARM64.
  */
@@ -35,7 +38,12 @@ public actual fun sockAddrUnix(path: String): Result<SockAddr> {
             padding = sunPath + ByteArray(126 - 108), // Pad to full storage size
         )
 
-    val length = (2 + pathBytes.size + 1).toUInt() // family (2) + path + null terminator
+    val length =
+        when {
+            pathBytes.isEmpty() -> 2u
+            pathBytes[0] == 0.toByte() -> (2 + pathBytes.size).toUInt()
+            else -> (2 + pathBytes.size + 1).toUInt()
+        }
     return Result.success(SockAddr(storage, length))
 }
 

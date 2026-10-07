@@ -1,28 +1,10 @@
 // port-lint: source sockaddr.rs
 package io.github.kotlinmania.socket2
 
-/**
- * Node.js-specific SockAddr functions.
- */
+import io.github.kotlinmania.libc.SockaddrStorage
 
-public actual fun sockAddrUnix(path: String): Result<SockAddr> {
-    val pathBytes = path.encodeToByteArray()
-    if (pathBytes.size >= 108) {
-        return Result.failure(IllegalArgumentException("Unix socket path too long: ${pathBytes.size} bytes (max 107)"))
-    }
-
-    val sunPath = ByteArray(108)
-    pathBytes.copyInto(sunPath, 0, 0, pathBytes.size)
-
-    val storage =
-        SockaddrStorage(
-            ssFamily = AF_UNIX.toUShort(),
-            padding = sunPath + ByteArray(126 - 108),
-        )
-
-    val length = (2 + pathBytes.size + 1).toUInt()
-    return Result.success(SockAddr(storage, length))
-}
+public actual fun sockAddrUnix(path: String): Result<SockAddr> =
+    Result.failure(UnsupportedOperationException("Unix domain sockets not available in browser/wasmJs"))
 
 internal actual fun SockAddr.asSocketPlatform(): Socket2SocketAddress? {
     return when {

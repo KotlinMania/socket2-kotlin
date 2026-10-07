@@ -12,6 +12,16 @@ package io.github.kotlinmania.socket2
 public data class SocketType(
     public val value: Int,
 ) {
+    override fun toString(): String =
+        when (value) {
+            SOCK_STREAM -> "SOCK_STREAM"
+            SOCK_DGRAM -> "SOCK_DGRAM"
+            SOCK_SEQPACKET -> "SOCK_SEQPACKET"
+            SOCK_RAW -> "SOCK_RAW"
+            SOCK_DCCP -> "SOCK_DCCP"
+            else -> value.toString()
+        }
+
     public companion object {
         /**
          * Type corresponding to `SOCK_STREAM`.
