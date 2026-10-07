@@ -3,7 +3,7 @@ package io.github.kotlinmania.socket2.sys
 
 import io.github.kotlinmania.socket2.SockAddr
 import io.github.kotlinmania.socket2.SockAddrStorage
-import io.github.kotlinmania.socket2.SockaddrStorage
+import io.github.kotlinmania.libc.SockaddrStorage
 import io.github.kotlinmania.socket2.cinterop.socket2_accept
 import io.github.kotlinmania.socket2.cinterop.socket2_addr_storage_free
 import io.github.kotlinmania.socket2.cinterop.socket2_addr_storage_get_family

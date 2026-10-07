@@ -1,6 +1,8 @@
 // port-lint: source sockaddr.rs
 package io.github.kotlinmania.socket2
 
+import io.github.kotlinmania.libc.SockaddrStorage
+
 public actual fun sockAddrUnix(path: String): Result<SockAddr> =
     Result.failure(UnsupportedOperationException("Unix domain sockets not available in browser/wasmJs"))
 

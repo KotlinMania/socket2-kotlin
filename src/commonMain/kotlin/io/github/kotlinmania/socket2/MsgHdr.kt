@@ -1,6 +1,9 @@
 // port-lint: source lib.rs
 package io.github.kotlinmania.socket2
 
+import io.github.kotlinmania.libc.musl.sys.Iovec
+import io.github.kotlinmania.libc.musl.sys.Msghdr
+
 /**
  * Configuration of a `sendmsg(2)` system call.
  *

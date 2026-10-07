@@ -1,15 +1,17 @@
 // port-lint: source sockaddr.rs
 package io.github.kotlinmania.socket2
 
+import io.github.kotlinmania.libc.SockaddrStorage
+
 /**
  * The integer type used with `getsockname` on this platform.
  */
-public typealias SocklenT = CUInt
+public typealias SocklenT = UInt
 
 /**
  * The integer type for the address family on this platform.
  */
-public typealias SaFamilyT = CUShort
+public typealias SaFamilyT = UShort
 
 /**
  * Kotlin version of the `sockaddr_storage` type.

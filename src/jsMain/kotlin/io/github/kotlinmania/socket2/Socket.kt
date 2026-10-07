@@ -1,6 +1,8 @@
 // port-lint: source socket.rs
 package io.github.kotlinmania.socket2
 
+import io.github.kotlinmania.libc.SockaddrStorage
+
 /**
  * Node.js N-API native bindings for direct POSIX socket syscalls.
  *

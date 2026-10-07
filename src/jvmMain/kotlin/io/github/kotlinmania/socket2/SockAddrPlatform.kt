@@ -1,6 +1,8 @@
 // port-lint: source sockaddr.rs
 package io.github.kotlinmania.socket2
 
+import io.github.kotlinmania.libc.SockaddrStorage
+
 /**
  * JVM-specific SockAddr functions.
  */
