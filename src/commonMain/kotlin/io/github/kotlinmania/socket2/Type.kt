@@ -51,6 +51,11 @@ public data class SocketType(
         public fun from(value: Int): SocketType = SocketType(value)
 
         /**
+         * Converts a [SocketType] into its raw integer representation.
+         */
+        public fun from(type: SocketType): Int = type.toInt()
+
+        /**
          * Type corresponding to [SOCK_STREAM].
          *
          * Used for protocols such as TCP.

@@ -40,6 +40,11 @@ public data class Domain(
         public fun from(value: Int): Domain = Domain(value)
 
         /**
+         * Converts a [Domain] into its raw integer representation.
+         */
+        public fun from(domain: Domain): Int = domain.toInt()
+
+        /**
          * Domain for IPv4 communication, corresponding to [AF_INET].
          */
         public val IPV4: Domain = Domain(AF_INET)
