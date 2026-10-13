@@ -144,6 +144,8 @@ internal actual class SysSocket internal constructor(
         Result.failure(UnsupportedOperationException("SysSocket setTtl requires WASI Preview 2 (wasi:sockets/tcp.set-hop-limit)"))
 
     actual companion object {
+        actual fun fromRaw(raw: Int): SysSocket = SysSocket(raw)
+
         actual fun new(
             domain: Domain,
             type: SocketType,

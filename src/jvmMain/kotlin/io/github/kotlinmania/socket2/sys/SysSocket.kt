@@ -125,6 +125,8 @@ internal actual class SysSocket internal constructor(
         Result.failure(UnsupportedOperationException("SysSocket not available on JVM — no direct C socket access"))
 
     actual companion object {
+        actual fun fromRaw(raw: Int): SysSocket = SysSocket(raw)
+
         actual fun new(
             domain: Domain,
             type: SocketType,

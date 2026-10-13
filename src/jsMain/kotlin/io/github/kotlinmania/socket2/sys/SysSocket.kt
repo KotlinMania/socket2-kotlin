@@ -227,6 +227,8 @@ internal actual class SysSocket internal constructor(
     actual fun setTtl(ttl: UInt): Result<Unit> = Result.success(Unit)
 
     actual companion object {
+        actual fun fromRaw(raw: Int): SysSocket = SysSocket(raw)
+
         actual fun new(
             domain: Domain,
             type: SocketType,
