@@ -4,7 +4,9 @@ package io.github.kotlinmania.socket2
 /**
  * Possible values which can be passed to the [Socket.shutdown] method.
  */
-public enum class Shutdown(public val value: Int) {
+public enum class Shutdown(
+    public val value: Int,
+) {
     /**
      * The reading portion of the socket connection should be shut down.
      *

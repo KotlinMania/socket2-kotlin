@@ -977,7 +977,10 @@ val publishToCentralPortal by tasks.registering {
                 statusBody["deploymentState"]?.toString()
                     ?: error("Central Portal status response did not contain deploymentState: ${statusResponse.body()}")
             when (deploymentState) {
-                "FAILED" -> error("Central Portal deployment failed: ${statusBody["errors"] ?: statusResponse.body()}")
+                "FAILED" -> {
+                    error("Central Portal deployment failed: ${statusBody["errors"] ?: statusResponse.body()}")
+                }
+
                 in terminalStates -> {
                     logger.lifecycle("Central Portal deployment $deploymentId reached $deploymentState.")
                     return@doLast
@@ -1075,11 +1078,13 @@ tasks.matching { it.name.contains("GenerateSPMPackage") }.configureEach {
             spmDir.walkTopDown().filter { it.name == "Socket2.swift" }.forEach { file ->
                 val text = file.readText()
                 val cleaned =
-                    text.lines().filterNot { line ->
-                        val trimmed = line.trim()
-                        trimmed.startsWith("public typealias Protocol =") ||
-                            trimmed.startsWith("public typealias Type =")
-                    }.joinToString("\n")
+                    text
+                        .lines()
+                        .filterNot { line ->
+                            val trimmed = line.trim()
+                            trimmed.startsWith("public typealias Protocol =") ||
+                                trimmed.startsWith("public typealias Type =")
+                        }.joinToString("\n")
                 if (cleaned != text) {
                     file.writeText(cleaned)
                 }

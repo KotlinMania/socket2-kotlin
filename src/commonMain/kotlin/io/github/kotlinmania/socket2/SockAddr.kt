@@ -350,6 +350,7 @@ internal fun SockAddr.asSocketPlatform(): Socket2SocketAddress? =
                 )
             }
         }
+
         isIpv6() -> {
             val padding = storage.padding
             if (padding.size < 22) {
@@ -392,7 +393,10 @@ internal fun SockAddr.asSocketPlatform(): Socket2SocketAddress? =
                 )
             }
         }
-        else -> null
+
+        else -> {
+            null
+        }
     }
 
 /**
@@ -422,6 +426,7 @@ public fun Socket2SocketAddress.toSockAddr(): SockAddr =
             val length = 16u
             SockAddr(storage, length)
         }
+
         is Socket2SocketAddress.V6 -> {
             val parts = address.split(':').filter { it.isNotEmpty() }
             val addrBytes = ByteArray(16)

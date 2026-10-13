@@ -210,7 +210,10 @@ internal fun connectTimeout(fd: RawSocket, addr: SockAddr, timeout: kotlin.time.
     val timeoutMs = timeout.inWholeMilliseconds.coerceIn(1, Int.MAX_VALUE.toLong()).toInt()
     val pollRes = socket2_poll_connect(fd.fd, timeoutMs)
     return when {
-        pollRes == 0 -> Result.failure(IOException("Connection timed out"))
+        pollRes == 0 -> {
+            Result.failure(IOException("Connection timed out"))
+        }
+
         pollRes < 0 -> {
             if (pollRes == -2) {
                 val err = getsockoptInt(fd, SOL_SOCKET_VAL, SO_ERROR_VAL).getOrNull() ?: 0
@@ -224,7 +227,10 @@ internal fun connectTimeout(fd: RawSocket, addr: SockAddr, timeout: kotlin.time.
                 Result.failure(IOException("poll() failed: ${socket2_get_error_string(errnoVal)?.toKString()}"))
             }
         }
-        else -> Result.success(Unit)
+
+        else -> {
+            Result.success(Unit)
+        }
     }
 }
 
