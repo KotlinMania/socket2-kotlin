@@ -9,6 +9,11 @@ import io.github.kotlinmania.socket2.SocketType
 import kotlin.time.Duration
 
 /**
+ * Socket type alias corresponding to Rust's pub(crate) type Socket.
+ */
+internal typealias Socket = SysSocket
+
+/**
  * Platform-specific low-level socket handle and syscall bridge.
  */
 internal expect class SysSocket {

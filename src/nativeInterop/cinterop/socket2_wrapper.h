@@ -34,6 +34,25 @@
 extern "C" {
 #endif
 
+/**
+ * File descriptor and socket handle re-exports.
+ * Corresponds to Rust's std::os::fd::OwnedFd and RawSocket (c_int).
+ */
+typedef int socket2_owned_fd_t;
+typedef int socket2_raw_socket_t;
+
+static inline socket2_owned_fd_t socket2_from_raw_fd(socket2_raw_socket_t raw) {
+    return raw;
+}
+
+static inline socket2_raw_socket_t socket2_as_raw_fd(socket2_owned_fd_t fd) {
+    return fd;
+}
+
+static inline socket2_raw_socket_t socket2_into_raw_fd(socket2_owned_fd_t fd) {
+    return fd;
+}
+
 typedef struct Socket2AddrStorage {
     struct sockaddr_storage storage;
 } Socket2AddrStorage;
