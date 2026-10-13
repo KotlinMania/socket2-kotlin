@@ -46,6 +46,14 @@ public data class SockAddrStorage(
     }
 
     /**
+     * Views this storage buffer as a typed address struct.
+     */
+    public fun <T> viewAs(): T {
+        @Suppress("UNCHECKED_CAST")
+        return storage as T
+    }
+
+    /**
      * Formats this storage for debugging.
      */
     public fun fmt(): String = toString()
@@ -96,19 +104,33 @@ public data class SockAddr internal constructor(
         public fun unix(path: String): Result<SockAddr> = sockAddrUnix(path)
 
         /**
-         * Converts a [Socket2SocketAddress] into a [SockAddr].
+         * Converts a [SocketAddr] into a [SockAddr].
          */
-        public fun from(addr: Socket2SocketAddress): SockAddr = addr.toSockAddr()
+        public fun from(addr: SocketAddr): SockAddr = addr.toSockAddr()
 
         /**
-         * Converts a [Socket2SocketAddress.V4] into a [SockAddr].
+         * Converts a [SocketAddrV4] into a [SockAddr].
          */
-        public fun from(addr: Socket2SocketAddress.V4): SockAddr = addr.toSockAddr()
+        public fun from(addr: SocketAddrV4): SockAddr = addr.toSockAddr()
 
         /**
-         * Converts a [Socket2SocketAddress.V6] into a [SockAddr].
+         * Converts a [SocketAddrV6] into a [SockAddr].
          */
-        public fun from(addr: Socket2SocketAddress.V6): SockAddr = addr.toSockAddr()
+        public fun from(addr: SocketAddrV6): SockAddr = addr.toSockAddr()
+
+        /**
+         * Initialize a `SockAddr` by passing a zeroed storage and mutable length pointer
+         * to an initializer function.
+         */
+        public fun <T> tryInit(
+            init: (SockAddrStorage, (SocklenT) -> Unit) -> Result<T>,
+        ): Result<Pair<T, SockAddr>> {
+            val storage = SockAddrStorage.zeroed()
+            var len = storage.sizeOf()
+            return init(storage) { len = it }.map { res ->
+                Pair(res, new(storage, len))
+            }
+        }
     }
 
     /**
@@ -135,6 +157,11 @@ public data class SockAddr internal constructor(
      * Returns the address as the storage.
      */
     public fun asStorage(): SockAddrStorage = SockAddrStorage(storage)
+
+    /**
+     * Returns a pointer to the address storage.
+     */
+    public fun asPtr(): SockAddrStorage = asStorage()
 
     /**
      * Returns the raw initialized bytes of the address. Upstream `asBytes`.
@@ -204,41 +231,37 @@ public data class SockAddr internal constructor(
     }
 
     /**
-     * Converts this address to a [Socket2SocketAddress] if it is in the `AF_INET` (IPv4)
-     * or `AF_INET6` (IPv6) family, otherwise returns null.
-     *
-     * This requires platform-specific implementation to extract the address details
-     * from the underlying storage.
+     * Converts this address to a [SocketAddr] if it is in the `AF_INET` or `AF_INET6` family.
      */
-    public fun asSocket(): Socket2SocketAddress? = asSocketPlatform()
+    public fun asSocket(): SocketAddr? = asSocketPlatform()
 
     /**
-     * Converts this address to a [Socket2SocketAddress.V4] if it is in the `AF_INET` family.
+     * Converts this address to a [SocketAddrV4] if it is in the `AF_INET` family.
      */
-    public fun asSocketIpv4(): Socket2SocketAddress.V4? =
+    public fun asSocketIpv4(): SocketAddrV4? =
         when (val addr = asSocket()) {
-            is Socket2SocketAddress.V4 -> addr
+            is SocketAddrV4 -> addr
             else -> null
         }
 
     /**
      * Upstream alias for [asSocketIpv4].
      */
-    public fun ipv4(): Socket2SocketAddress.V4? = asSocketIpv4()
+    public fun ipv4(): SocketAddrV4? = asSocketIpv4()
 
     /**
-     * Converts this address to a [Socket2SocketAddress.V6] if it is in the `AF_INET6` family.
+     * Converts this address to a [SocketAddrV6] if it is in the `AF_INET6` family.
      */
-    public fun asSocketIpv6(): Socket2SocketAddress.V6? =
+    public fun asSocketIpv6(): SocketAddrV6? =
         when (val addr = asSocket()) {
-            is Socket2SocketAddress.V6 -> addr
+            is SocketAddrV6 -> addr
             else -> null
         }
 
     /**
      * Upstream alias for [asSocketIpv6].
      */
-    public fun ipv6(): Socket2SocketAddress.V6? = asSocketIpv6()
+    public fun ipv6(): SocketAddrV6? = asSocketIpv6()
 
     override fun toString(): String = "SockAddr(family=${storage.ssFamily}, len=$length)"
 
@@ -258,45 +281,69 @@ public data class SockAddr internal constructor(
         result = 31 * result + length.hashCode()
         return result
     }
+
+    /**
+     * Tests equality with another address.
+     */
+    public fun eq(other: SockAddr): Boolean = equals(other)
+
+    /**
+     * Computes the hash code of this address.
+     */
+    public fun hash(): Int = hashCode()
 }
 
 /**
  * Socket address type that can represent both IPv4 and IPv6 addresses.
  *
- * This is similar to Rust's std::net::SocketAddr.
- * Named Socket2SocketAddress to avoid conflicts with platform SocketAddress types.
+ * Corresponds to Rust's `std::net::SocketAddr`.
  */
-public sealed class Socket2SocketAddress {
+public sealed class SocketAddr {
     public fun isIpv4(): Boolean = this is V4
 
     public fun isIpv6(): Boolean = this is V6
 
     /**
-     * IPv4 socket address.
+     * IPv4 socket address. Corresponds to Rust's `std::net::SocketAddrV4`.
      */
     public data class V4(
         val address: String, // IPv4 address as string (e.g., "192.168.1.1")
         val port: Int,
-    ) : Socket2SocketAddress() {
+    ) : SocketAddr() {
         init {
             require(port in 0..65535) { "Port must be in range 0..65535" }
         }
     }
 
     /**
-     * IPv6 socket address.
+     * IPv6 socket address. Corresponds to Rust's `std::net::SocketAddrV6`.
      */
     public data class V6(
         val address: String, // IPv6 address as string (e.g., "::1")
         val port: Int,
         val flow: UInt = 0u,
         val scope: UInt = 0u,
-    ) : Socket2SocketAddress() {
+    ) : SocketAddr() {
         init {
             require(port in 0..65535) { "Port must be in range 0..65535" }
         }
     }
 }
+
+/**
+ * Backward compatibility alias for [SocketAddr].
+ */
+public typealias Socket2SocketAddress = SocketAddr
+
+/**
+ * IPv4 socket address corresponding to Rust's `std::net::SocketAddrV4`.
+ */
+public typealias SocketAddrV4 = SocketAddr.V4
+
+/**
+ * IPv6 socket address corresponding to Rust's `std::net::SocketAddrV6`.
+ */
+public typealias SocketAddrV6 = SocketAddr.V6
 
 /**
  * Constructs a `SockAddr` with the family `AF_UNIX` and the provided path.
@@ -329,9 +376,9 @@ public fun sockAddrUnix(path: String): Result<SockAddr> {
 }
 
 /**
- * Platform-specific implementation to convert SockAddr to Socket2SocketAddress.
+ * Platform-specific implementation to convert SockAddr to SocketAddr.
  */
-internal fun SockAddr.asSocketPlatform(): Socket2SocketAddress? =
+internal fun SockAddr.asSocketPlatform(): SocketAddr? =
     when {
         isIpv4() -> {
             val padding = storage.padding
@@ -344,7 +391,7 @@ internal fun SockAddr.asSocketPlatform(): Socket2SocketAddress? =
                 val addr3 = padding[4].toUByte().toInt()
                 val addr4 = padding[5].toUByte().toInt()
 
-                Socket2SocketAddress.V4(
+                SocketAddr.V4(
                     address = "$addr1.$addr2.$addr3.$addr4",
                     port = port,
                 )
@@ -385,7 +432,7 @@ internal fun SockAddr.asSocketPlatform(): Socket2SocketAddress? =
                         }
                     }
 
-                Socket2SocketAddress.V6(
+                SocketAddr.V6(
                     address = address,
                     port = port,
                     flow = flowInfo,
@@ -400,11 +447,11 @@ internal fun SockAddr.asSocketPlatform(): Socket2SocketAddress? =
     }
 
 /**
- * Converts a [Socket2SocketAddress] to a [SockAddr].
+ * Converts a [SocketAddr] to a [SockAddr].
  */
-public fun Socket2SocketAddress.toSockAddr(): SockAddr =
+public fun SocketAddr.toSockAddr(): SockAddr =
     when (this) {
-        is Socket2SocketAddress.V4 -> {
+        is SocketAddr.V4 -> {
             val parts = address.split('.')
             require(parts.size == 4) { "Invalid IPv4 address: $address" }
             val bytes = parts.map { it.toInt().also { v -> require(v in 0..255) } }
@@ -427,7 +474,7 @@ public fun Socket2SocketAddress.toSockAddr(): SockAddr =
             SockAddr(storage, length)
         }
 
-        is Socket2SocketAddress.V6 -> {
+        is SocketAddr.V6 -> {
             val parts = address.split(':').filter { it.isNotEmpty() }
             val addrBytes = ByteArray(16)
 

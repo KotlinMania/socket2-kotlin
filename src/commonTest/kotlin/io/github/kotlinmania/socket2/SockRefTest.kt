@@ -37,7 +37,7 @@ class SockRefTest {
         val sockRef = SockRef.from(socket)
 
         // Invalid bind to unroutable address should fail gracefully as a Result
-        val addr = SockAddr.from(Socket2SocketAddress.V4("0.0.0.0", 0))
+        val addr = SockAddr.from(SocketAddr.V4("0.0.0.0", 0))
         val bindResult = sockRef.bind(addr)
         // Bind may succeed with port 0 or fail depending on sandbox
         assertNotNull(bindResult)
