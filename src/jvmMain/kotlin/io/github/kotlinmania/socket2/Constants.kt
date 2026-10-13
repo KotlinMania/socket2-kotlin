@@ -14,11 +14,15 @@ internal actual val SOCK_DGRAM: Int = 2
 internal actual val SOCK_DCCP: Int = 6
 internal actual val SOCK_SEQPACKET: Int = 5
 internal actual val SOCK_RAW: Int = 3
+internal actual val SOCK_NONBLOCK: Int = 0x800
+internal actual val SOCK_CLOEXEC: Int = 0x80000
 
 // Address families/domains - expect declarations in Domain.kt
 internal actual val AF_INET: Int = 2
 internal actual val AF_INET6: Int = 10 // AF_INET6 on most systems
 internal actual val AF_UNIX: Int = 1
+internal actual val AF_PACKET: Int = 17
+internal actual val AF_VSOCK: Int = 40
 
 // Protocol numbers - expect declarations in Protocol.kt
 internal actual val IPPROTO_ICMP: Int = 1
@@ -33,3 +37,7 @@ internal actual val IPPROTO_DIVERT: Int = 254 // Divert pseudo-protocol
 
 // Message flags - expect declaration in RecvFlags.kt
 internal actual val MSG_TRUNC: Int = 0x20
+internal actual val MSG_EOR: Int = 0x8
+internal actual val MSG_OOB: Int = 0x1
+internal actual val MSG_CONFIRM: Int = 0x800
+internal actual val MSG_DONTROUTE: Int = 0x4

@@ -2,12 +2,16 @@
 package io.github.kotlinmania.socket2
 
 /**
- * Protocol specification used for creating sockets via `Socket.new`.
+ * Protocol specification used for creating sockets via [Socket.new].
  *
- * This is a data class wrapper around an Int which provides a nicer API.
+ * This is a wrapper around an integer which provides a nicer API in
+ * addition to an injection point for documentation.
  *
- * This type is freely interconvertible with Int.
+ * This type is freely interconvertible with C's `int` (`Int`) type, however, if a raw
+ * value needs to be provided.
  */
+public typealias Protocol = SocketProtocol
+
 public data class SocketProtocol(
     public val value: Int,
 ) {
@@ -24,6 +28,11 @@ public data class SocketProtocol(
             IPPROTO_DIVERT -> "IPPROTO_DIVERT"
             else -> value.toString()
         }
+
+    /**
+     * Formats this protocol for debugging. Upstream `fmt::Debug::fmt`.
+     */
+    public fun fmt(): String = toString()
 
     public companion object {
         /**

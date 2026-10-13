@@ -16,7 +16,7 @@ public typealias SocklenT = LibcSocklenT
 public typealias SaFamilyT = LibcSaFamilyT
 
 /**
- * Kotlin version of the `sockaddr_storage` type.
+ * Kotlin version of the [SockAddrStorage] type.
  *
  * This type is intended to be used with direct calls to the `getsockname` syscall.
  * See the documentation of [SockAddr.new] for examples.
@@ -137,7 +137,7 @@ public data class SockAddr internal constructor(
     public fun asStorage(): SockAddrStorage = SockAddrStorage(storage)
 
     /**
-     * Returns the raw initialized bytes of the address. Upstream `as_bytes`.
+     * Returns the raw initialized bytes of the address. Upstream `asBytes`.
      */
     public fun asBytes(): ByteArray = storage.padding
 
@@ -316,6 +316,6 @@ internal expect fun SockAddr.asSocketPlatform(): Socket2SocketAddress?
  * Converts a [Socket2SocketAddress] to a [SockAddr].
  *
  * This requires platform-specific implementation to construct the appropriate
- * sockaddr_in or sockaddr_in6 structure.
+ * socket address structure.
  */
 public expect fun Socket2SocketAddress.toSockAddr(): SockAddr

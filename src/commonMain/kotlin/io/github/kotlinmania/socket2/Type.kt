@@ -4,11 +4,16 @@ package io.github.kotlinmania.socket2
 /**
  * Specification of communication semantics on a socket.
  *
- * This is a data class wrapper around an Int which provides a nicer API.
- * Convenience constants such as [Type.STREAM], [Type.DGRAM], etc, are provided.
+ * This is a wrapper around an integer which provides a nicer API in
+ * addition to an injection point for documentation. Convenience constants such
+ * as [Type.STREAM], [Type.DGRAM], etc, are provided to avoid reaching
+ * into libc for various constants.
  *
- * This type is freely interconvertible with Int.
+ * This type is freely interconvertible with C's `int` (`Int`) type, however, if a raw
+ * value needs to be provided.
  */
+public typealias Type = SocketType
+
 public data class SocketType(
     public val value: Int,
 ) {
@@ -21,6 +26,21 @@ public data class SocketType(
             SOCK_DCCP -> "SOCK_DCCP"
             else -> value.toString()
         }
+
+    /**
+     * Formats this socket type for debugging. Upstream `fmt::Debug::fmt`.
+     */
+    public fun fmt(): String = toString()
+
+    /**
+     * Set `SOCK_NONBLOCK` on the [SocketType].
+     */
+    public fun nonblocking(): SocketType = SocketType(value or SOCK_NONBLOCK)
+
+    /**
+     * Set `SOCK_CLOEXEC` on the [SocketType].
+     */
+    public fun cloexec(): SocketType = SocketType(value or SOCK_CLOEXEC)
 
     public companion object {
         /**
@@ -57,9 +77,6 @@ public data class SocketType(
     }
 }
 
-// Callers migrated:
-// - Type -> io.github.kotlinmania.socket2.SocketType
-
 /**
  * Platform-specific socket type constants.
  * These will be provided by platform-specific implementations.
@@ -69,3 +86,5 @@ internal expect val SOCK_DGRAM: Int
 internal expect val SOCK_DCCP: Int
 internal expect val SOCK_SEQPACKET: Int
 internal expect val SOCK_RAW: Int
+internal expect val SOCK_NONBLOCK: Int
+internal expect val SOCK_CLOEXEC: Int
