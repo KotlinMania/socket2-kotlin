@@ -2,7 +2,6 @@
 package io.github.kotlinmania.socket2
 
 import io.github.kotlinmania.libc.SockaddrStorage
-import io.github.kotlinmania.libc.SockaddrUn
 import io.github.kotlinmania.libc.SaFamilyT as LibcSaFamilyT
 import io.github.kotlinmania.libc.SocklenT as LibcSocklenT
 
