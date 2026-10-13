@@ -92,14 +92,16 @@ public data class Protocol(
 
 /**
  * Platform-specific protocol constants.
- * These will be provided by platform-specific implementations.
  */
-internal expect val IPPROTO_ICMP: Int
-internal expect val IPPROTO_ICMPV6: Int
-internal expect val IPPROTO_TCP: Int
-internal expect val IPPROTO_UDP: Int
-internal expect val IPPROTO_MPTCP: Int
-internal expect val IPPROTO_DCCP: Int
-internal expect val IPPROTO_SCTP: Int
-internal expect val IPPROTO_UDPLITE: Int
-internal expect val IPPROTO_DIVERT: Int
+internal const val IPPROTO_IP: Int = 0
+internal const val IPPROTO_ICMP: Int = 1
+internal const val IPPROTO_TCP: Int = 6
+internal const val IPPROTO_UDP: Int = 17
+internal const val IPPROTO_DCCP: Int = 33
+internal const val IPPROTO_IPV6: Int = 41
+internal const val IPPROTO_ICMPV6: Int = 58
+internal const val IPPROTO_SCTP: Int = 132
+internal const val IPPROTO_UDPLITE: Int = 136
+internal const val IPPROTO_DIVERT: Int = 254
+internal const val IPPROTO_RAW: Int = 255
+internal const val IPPROTO_MPTCP: Int = 262

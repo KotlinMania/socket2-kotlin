@@ -1,92 +1,156 @@
 // port-lint: source socket.rs
 package io.github.kotlinmania.socket2
 
+import io.github.kotlinmania.socket2.sys.SysSocket
+import kotlin.time.Duration
+
 /**
- * A socket handle that provides cross-platform access to the socket API.
+ * An owned wrapper around a system socket.
  *
- * This is an expect declaration — each platform provides its own actual
- * implementation. Native targets delegate to the `sys.*` syscall wrappers;
- * JVM uses Java NIO channels; Node.js uses N-API native bindings.
- *
- * Construct via [Socket.new] or [Socket.newRaw] — the constructor is internal
- * and platform-specific.
+ * This provides cross-platform access to low-level socket APIs without
+ * using Java networking or runtime abstractions.
  */
-public expect class Socket {
+public class Socket internal constructor(
+    private var inner: SysSocket?,
+) {
     public companion object {
-        public fun new(domain: Domain, type: SocketType, protocol: SocketProtocol?): Result<Socket>
+        /**
+         * Creates a new socket and configures standard flags.
+         */
+        public fun new(
+            domain: Domain,
+            type: SocketType,
+            protocol: SocketProtocol? = null,
+        ): Result<Socket> = SysSocket.new(domain, type, protocol).map { Socket(it) }
 
-        public fun newRaw(domain: Domain, type: SocketType, protocol: SocketProtocol?): Result<Socket>
+        /**
+         * Creates a new socket without setting any flags.
+         */
+        public fun newRaw(
+            domain: Domain,
+            type: SocketType,
+            protocol: SocketProtocol? = null,
+        ): Result<Socket> = SysSocket.new(domain, type, protocol).map { Socket(it) }
 
-        public fun pair(domain: Domain, type: SocketType, protocol: SocketProtocol?): Result<Pair<Socket, Socket>>
+        /**
+         * Creates a pair of interconnected sockets.
+         */
+        public fun pair(
+            domain: Domain,
+            type: SocketType,
+            protocol: SocketProtocol? = null,
+        ): Result<Pair<Socket, Socket>> =
+            SysSocket.pair(domain, type, protocol).map { (a, b) ->
+                Pair(Socket(a), Socket(b))
+            }
 
-        public fun pairRaw(domain: Domain, type: SocketType, protocol: SocketProtocol?): Result<Pair<Socket, Socket>>
+        /**
+         * Creates a pair of interconnected sockets without setting any flags.
+         */
+        public fun pairRaw(
+            domain: Domain,
+            type: SocketType,
+            protocol: SocketProtocol? = null,
+        ): Result<Pair<Socket, Socket>> =
+            SysSocket.pair(domain, type, protocol).map { (a, b) ->
+                Pair(Socket(a), Socket(b))
+            }
     }
 
-    public fun bind(address: SockAddr): Result<Unit>
+    private fun inner(): SysSocket = inner ?: throw IllegalStateException("Socket is closed")
 
-    public fun connect(address: SockAddr): Result<Unit>
+    public fun asRaw(): Int = inner().raw
 
-    public fun connectTimeout(address: SockAddr, timeout: kotlin.time.Duration): Result<Unit>
+    public fun bind(address: SockAddr): Result<Unit> = inner().bind(address)
 
-    public fun listen(backlog: Int): Result<Unit>
+    public fun connect(address: SockAddr): Result<Unit> = inner().connect(address)
 
-    public fun accept(): Result<Pair<Socket, SockAddr>>
+    public fun connectTimeout(
+        address: SockAddr,
+        timeout: Duration,
+    ): Result<Unit> = inner().connectTimeout(address, timeout)
 
-    public fun localAddr(): Result<SockAddr>
+    public fun listen(backlog: Int): Result<Unit> = inner().listen(backlog)
 
-    public fun peerAddr(): Result<SockAddr>
+    public fun accept(): Result<Pair<Socket, SockAddr>> =
+        inner().accept().map { (client, addr) ->
+            Pair(Socket(client), addr)
+        }
 
-    public fun type(): Result<SocketType>
+    public fun localAddr(): Result<SockAddr> = inner().localAddr()
 
-    public fun tryClone(): Result<Socket>
+    public fun peerAddr(): Result<SockAddr> = inner().peerAddr()
 
-    public fun setNonblocking(nonblocking: Boolean): Result<Unit>
+    public fun type(): Result<SocketType> = inner().type()
 
-    public fun nonblocking(): Result<Boolean>
+    public fun tryClone(): Result<Socket> = inner().tryClone().map { Socket(it) }
 
-    public fun shutdown(how: Shutdown): Result<Unit>
+    public fun setNonblocking(nonblocking: Boolean): Result<Unit> = inner().setNonblocking(nonblocking)
 
-    public fun recv(buffer: ByteArray, flags: Int): Result<Int>
+    public fun nonblocking(): Result<Boolean> = inner().nonblocking()
 
-    public fun recvFrom(buffer: ByteArray, flags: Int): Result<Pair<Int, SockAddr>>
+    public fun shutdown(how: Shutdown): Result<Unit> = inner().shutdown(how)
 
-    public fun send(buffer: ByteArray, flags: Int): Result<Int>
+    public fun recv(
+        buffer: ByteArray,
+        flags: Int = 0,
+    ): Result<Int> = inner().recv(buffer, flags)
 
-    public fun sendTo(buffer: ByteArray, flags: Int, address: SockAddr): Result<Int>
+    public fun recvFrom(
+        buffer: ByteArray,
+        flags: Int = 0,
+    ): Result<Pair<Int, SockAddr>> = inner().recvFrom(buffer, flags)
 
-    public fun close(): Result<Unit>
+    public fun send(
+        buffer: ByteArray,
+        flags: Int = 0,
+    ): Result<Int> = inner().send(buffer, flags)
 
-    public fun takeError(): Result<Int?>
+    public fun sendTo(
+        buffer: ByteArray,
+        flags: Int = 0,
+        address: SockAddr,
+    ): Result<Int> = inner().sendTo(buffer, flags, address)
 
-    public fun reuseAddress(): Result<Boolean>
+    public fun close(): Result<Unit> {
+        val s = inner ?: return Result.failure(IllegalStateException("Socket already closed"))
+        inner = null
+        return s.close()
+    }
 
-    public fun setReuseAddress(reuse: Boolean): Result<Unit>
+    public fun takeError(): Result<Int?> = inner().takeError()
 
-    public fun reusePort(): Result<Boolean>
+    public fun reuseAddress(): Result<Boolean> = inner().reuseAddress()
 
-    public fun setReusePort(reuse: Boolean): Result<Unit>
+    public fun setReuseAddress(reuse: Boolean): Result<Unit> = inner().setReuseAddress(reuse)
 
-    public fun broadcast(): Result<Boolean>
+    public fun reusePort(): Result<Boolean> = inner().reusePort()
 
-    public fun setBroadcast(broadcast: Boolean): Result<Unit>
+    public fun setReusePort(reuse: Boolean): Result<Unit> = inner().setReusePort(reuse)
 
-    public fun keepalive(): Result<Boolean>
+    public fun broadcast(): Result<Boolean> = inner().broadcast()
 
-    public fun setKeepalive(keepalive: Boolean): Result<Unit>
+    public fun setBroadcast(broadcast: Boolean): Result<Unit> = inner().setBroadcast(broadcast)
 
-    public fun sendBufferSize(): Result<Int>
+    public fun keepalive(): Result<Boolean> = inner().keepalive()
 
-    public fun setSendBufferSize(size: Int): Result<Unit>
+    public fun setKeepalive(keepalive: Boolean): Result<Unit> = inner().setKeepalive(keepalive)
 
-    public fun recvBufferSize(): Result<Int>
+    public fun sendBufferSize(): Result<Int> = inner().sendBufferSize()
 
-    public fun setRecvBufferSize(size: Int): Result<Unit>
+    public fun setSendBufferSize(size: Int): Result<Unit> = inner().setSendBufferSize(size)
 
-    public fun nodelay(): Result<Boolean>
+    public fun recvBufferSize(): Result<Int> = inner().recvBufferSize()
 
-    public fun setNodelay(nodelay: Boolean): Result<Unit>
+    public fun setRecvBufferSize(size: Int): Result<Unit> = inner().setRecvBufferSize(size)
 
-    public fun ttl(): Result<UInt>
+    public fun nodelay(): Result<Boolean> = inner().nodelay()
 
-    public fun setTtl(ttl: UInt): Result<Unit>
+    public fun setNodelay(nodelay: Boolean): Result<Unit> = inner().setNodelay(nodelay)
+
+    public fun ttl(): Result<UInt> = inner().ttl()
+
+    public fun setTtl(ttl: UInt): Result<Unit> = inner().setTtl(ttl)
+
+    override fun toString(): String = "Socket(inner=$inner)"
 }

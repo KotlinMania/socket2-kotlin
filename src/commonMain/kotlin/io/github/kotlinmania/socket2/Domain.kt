@@ -88,10 +88,10 @@ public data class Domain(
 
 /**
  * Platform-specific socket address family constants.
- * These will be provided by platform-specific implementations.
  */
-internal expect val AF_INET: Int
-internal expect val AF_INET6: Int
-internal expect val AF_UNIX: Int
-internal expect val AF_PACKET: Int
-internal expect val AF_VSOCK: Int
+internal const val AF_UNSPEC: Int = 0
+internal const val AF_UNIX: Int = 1
+internal const val AF_INET: Int = 2
+internal const val AF_INET6: Int = 30
+internal const val AF_PACKET: Int = 17
+internal const val AF_VSOCK: Int = 40

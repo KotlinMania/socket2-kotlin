@@ -68,14 +68,14 @@ import kotlinx.cinterop.value
  */
 
 // Raw socket FD value class
-internal actual value class RawSocket(
-    actual val fd: Int,
+internal value class RawSocket(
+    val fd: Int,
 )
 
 // Shutdown constants
-internal actual val SHUT_RD: Int = 0
-internal actual val SHUT_WR: Int = 1
-internal actual val SHUT_RDWR: Int = 2
+internal const val SHUT_RD: Int = 0
+internal const val SHUT_WR: Int = 1
+internal const val SHUT_RDWR: Int = 2
 
 // Socket option constants
 @OptIn(ExperimentalForeignApi::class)
@@ -137,7 +137,7 @@ internal fun extractSockAddr(storage: CPointer<Socket2AddrStorage>, len: UInt): 
 // Actual syscall implementations using C wrapper
 
 @OptIn(ExperimentalForeignApi::class)
-internal actual fun socket(family: Int, type: Int, protocol: Int): Result<RawSocket> {
+internal fun socket(family: Int, type: Int, protocol: Int): Result<RawSocket> {
     val fd = socket2_socket(family, type, protocol)
     return if (fd == -1) {
         val errnoVal = socket2_get_errno()
@@ -149,7 +149,7 @@ internal actual fun socket(family: Int, type: Int, protocol: Int): Result<RawSoc
 }
 
 @OptIn(ExperimentalForeignApi::class)
-internal actual fun bind(fd: RawSocket, addr: SockAddr): Result<Unit> {
+internal fun bind(fd: RawSocket, addr: SockAddr): Result<Unit> {
     val storage = socket2_addr_storage_new() ?: return Result.failure(IOException("Failed to allocate address storage"))
     try {
         socket2_addr_storage_set_family(storage, addr.storage.ssFamily)
@@ -173,7 +173,7 @@ internal actual fun bind(fd: RawSocket, addr: SockAddr): Result<Unit> {
 }
 
 @OptIn(ExperimentalForeignApi::class)
-internal actual fun connect(fd: RawSocket, addr: SockAddr): Result<Unit> {
+internal fun connect(fd: RawSocket, addr: SockAddr): Result<Unit> {
     val storage = socket2_addr_storage_new() ?: return Result.failure(IOException("Failed to allocate address storage"))
     try {
         socket2_addr_storage_set_family(storage, addr.storage.ssFamily)
@@ -234,7 +234,7 @@ internal fun connectTimeout(fd: RawSocket, addr: SockAddr, timeout: kotlin.time.
 }
 
 @OptIn(ExperimentalForeignApi::class)
-internal actual fun listen(fd: RawSocket, backlog: Int): Result<Unit> {
+internal fun listen(fd: RawSocket, backlog: Int): Result<Unit> {
     val result = socket2_listen(fd.fd, backlog)
     return if (result == -1) {
         val errnoVal = socket2_get_errno()
@@ -246,7 +246,7 @@ internal actual fun listen(fd: RawSocket, backlog: Int): Result<Unit> {
 }
 
 @OptIn(ExperimentalForeignApi::class)
-internal actual fun accept(fd: RawSocket): Result<Pair<RawSocket, SockAddr>> =
+internal fun accept(fd: RawSocket): Result<Pair<RawSocket, SockAddr>> =
     memScoped {
         val storage = socket2_addr_storage_new() ?: return Result.failure(IOException("Failed to allocate address storage"))
         try {
@@ -388,7 +388,7 @@ internal fun setsockoptInt(fd: RawSocket, level: Int, optname: Int, value: Int):
     }
 
 @OptIn(ExperimentalForeignApi::class)
-internal actual fun shutdown(fd: RawSocket, how: Int): Result<Unit> {
+internal fun shutdown(fd: RawSocket, how: Int): Result<Unit> {
     val result = socket2_shutdown(fd.fd, how)
     return if (result == -1) {
         val errnoVal = socket2_get_errno()
@@ -400,7 +400,7 @@ internal actual fun shutdown(fd: RawSocket, how: Int): Result<Unit> {
 }
 
 @OptIn(ExperimentalForeignApi::class, ExperimentalUnsignedTypes::class)
-internal actual fun recv(fd: RawSocket, buffer: ByteArray, flags: Int): Result<Int> =
+internal fun recv(fd: RawSocket, buffer: ByteArray, flags: Int): Result<Int> =
     buffer.usePinned { pinned ->
         val bytesRead = socket2_recv(fd.fd, pinned.addressOf(0), buffer.size.toULong(), flags).toInt()
         if (bytesRead == -1) {
@@ -436,7 +436,7 @@ internal fun recvfrom(fd: RawSocket, buffer: ByteArray, flags: Int): Result<Pair
     }
 
 @OptIn(ExperimentalForeignApi::class, ExperimentalUnsignedTypes::class)
-internal actual fun send(fd: RawSocket, buffer: ByteArray, flags: Int): Result<Int> =
+internal fun send(fd: RawSocket, buffer: ByteArray, flags: Int): Result<Int> =
     buffer.usePinned { pinned ->
         val bytesSent = socket2_send(fd.fd, pinned.addressOf(0), buffer.size.toULong(), flags).toInt()
         if (bytesSent == -1) {
@@ -475,7 +475,7 @@ internal fun sendto(fd: RawSocket, buffer: ByteArray, flags: Int, addr: SockAddr
 }
 
 @OptIn(ExperimentalForeignApi::class)
-internal actual fun close(fd: RawSocket): Result<Unit> {
+internal fun close(fd: RawSocket): Result<Unit> {
     val result = socket2_close(fd.fd)
     return if (result == -1) {
         val errnoVal = socket2_get_errno()

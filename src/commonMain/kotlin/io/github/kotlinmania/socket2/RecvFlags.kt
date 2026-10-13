@@ -67,8 +67,8 @@ public data class RecvFlags(
 /**
  * Platform-specific message flags.
  */
-internal expect val MSG_TRUNC: Int
-internal expect val MSG_EOR: Int
-internal expect val MSG_OOB: Int
-internal expect val MSG_CONFIRM: Int
-internal expect val MSG_DONTROUTE: Int
+internal const val MSG_OOB: Int = 0x1
+internal const val MSG_DONTROUTE: Int = 0x4
+internal const val MSG_EOR: Int = 0x8
+internal const val MSG_TRUNC: Int = 0x10
+internal const val MSG_CONFIRM: Int = 0x800

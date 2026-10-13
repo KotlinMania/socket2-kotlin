@@ -85,12 +85,12 @@ public data class Type(
 
 /**
  * Platform-specific socket type constants.
- * These will be provided by platform-specific implementations.
  */
-internal expect val SOCK_STREAM: Int
-internal expect val SOCK_DGRAM: Int
-internal expect val SOCK_DCCP: Int
-internal expect val SOCK_SEQPACKET: Int
-internal expect val SOCK_RAW: Int
-internal expect val SOCK_NONBLOCK: Int
-internal expect val SOCK_CLOEXEC: Int
+internal const val SOCK_STREAM: Int = 1
+internal const val SOCK_DGRAM: Int = 2
+internal const val SOCK_RAW: Int = 3
+internal const val SOCK_RDM: Int = 4
+internal const val SOCK_SEQPACKET: Int = 5
+internal const val SOCK_DCCP: Int = 6
+internal const val SOCK_NONBLOCK: Int = 0x800
+internal const val SOCK_CLOEXEC: Int = 0x80000
