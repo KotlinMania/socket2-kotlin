@@ -10,9 +10,9 @@ package io.github.kotlinmania.socket2
  * This type is freely interconvertible with C's int type, however, if a raw
  * value needs to be provided.
  */
-public typealias SocketProtocol = Protocol
+public typealias Protocol = SocketProtocol
 
-public data class Protocol(
+public data class SocketProtocol(
     public val value: Int,
 ) {
     public fun toInt(): Int = value
@@ -38,55 +38,55 @@ public data class Protocol(
 
     public companion object {
         /**
-         * Converts an integer value into a [Protocol].
+         * Converts an integer value into a [SocketProtocol].
          */
-        public fun from(value: Int): Protocol = Protocol(value)
+        public fun from(value: Int): SocketProtocol = SocketProtocol(value)
 
         /**
          * Protocol corresponding to [IPPROTO_ICMP].
          */
-        public val ICMPV4: Protocol = Protocol(IPPROTO_ICMP)
+        public val ICMPV4: SocketProtocol = SocketProtocol(IPPROTO_ICMP)
 
         /**
          * Protocol corresponding to [IPPROTO_ICMPV6].
          */
-        public val ICMPV6: Protocol = Protocol(IPPROTO_ICMPV6)
+        public val ICMPV6: SocketProtocol = SocketProtocol(IPPROTO_ICMPV6)
 
         /**
          * Protocol corresponding to [IPPROTO_TCP].
          */
-        public val TCP: Protocol = Protocol(IPPROTO_TCP)
+        public val TCP: SocketProtocol = SocketProtocol(IPPROTO_TCP)
 
         /**
          * Protocol corresponding to [IPPROTO_UDP].
          */
-        public val UDP: Protocol = Protocol(IPPROTO_UDP)
+        public val UDP: SocketProtocol = SocketProtocol(IPPROTO_UDP)
 
         /**
          * Protocol corresponding to [IPPROTO_MPTCP].
          * Linux-specific.
          */
-        public val MPTCP: Protocol = Protocol(IPPROTO_MPTCP)
+        public val MPTCP: SocketProtocol = SocketProtocol(IPPROTO_MPTCP)
 
         /**
          * Protocol corresponding to [IPPROTO_DCCP].
          */
-        public val DCCP: Protocol = Protocol(IPPROTO_DCCP)
+        public val DCCP: SocketProtocol = SocketProtocol(IPPROTO_DCCP)
 
         /**
          * Protocol corresponding to [IPPROTO_SCTP].
          */
-        public val SCTP: Protocol = Protocol(IPPROTO_SCTP)
+        public val SCTP: SocketProtocol = SocketProtocol(IPPROTO_SCTP)
 
         /**
          * Protocol corresponding to [IPPROTO_UDPLITE].
          */
-        public val UDPLITE: Protocol = Protocol(IPPROTO_UDPLITE)
+        public val UDPLITE: SocketProtocol = SocketProtocol(IPPROTO_UDPLITE)
 
         /**
          * Protocol corresponding to [IPPROTO_DIVERT].
          */
-        public val DIVERT: Protocol = Protocol(IPPROTO_DIVERT)
+        public val DIVERT: SocketProtocol = SocketProtocol(IPPROTO_DIVERT)
     }
 }
 

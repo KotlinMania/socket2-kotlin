@@ -1064,6 +1064,18 @@ tasks.matching { it.name.contains("GenerateSPMPackage") }.configureEach {
                     file.writeText(cleaned)
                 }
             }
+            spmDir.walkTopDown().filter { it.name == "Socket2.swift" }.forEach { file ->
+                val text = file.readText()
+                val cleaned =
+                    text.lines().filterNot { line ->
+                        val trimmed = line.trim()
+                        trimmed.startsWith("public typealias Protocol =") ||
+                            trimmed.startsWith("public typealias Type =")
+                    }.joinToString("\n")
+                if (cleaned != text) {
+                    file.writeText(cleaned)
+                }
+            }
         }
     }
 }

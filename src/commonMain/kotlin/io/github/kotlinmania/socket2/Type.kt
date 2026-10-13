@@ -12,9 +12,9 @@ package io.github.kotlinmania.socket2
  * This type is freely interconvertible with C's int type, however, if a raw
  * value needs to be provided.
  */
-public typealias SocketType = Type
+public typealias Type = SocketType
 
-public data class Type(
+public data class SocketType(
     public val value: Int,
 ) {
     public fun toInt(): Int = value
@@ -35,51 +35,51 @@ public data class Type(
     public fun fmt(): String = toString()
 
     /**
-     * Set [SOCK_NONBLOCK] on the [Type].
+     * Set [SOCK_NONBLOCK] on the [SocketType].
      */
-    public fun nonblocking(): Type = Type(value or SOCK_NONBLOCK)
+    public fun nonblocking(): SocketType = SocketType(value or SOCK_NONBLOCK)
 
     /**
-     * Set [SOCK_CLOEXEC] on the [Type].
+     * Set [SOCK_CLOEXEC] on the [SocketType].
      */
-    public fun cloexec(): Type = Type(value or SOCK_CLOEXEC)
+    public fun cloexec(): SocketType = SocketType(value or SOCK_CLOEXEC)
 
     public companion object {
         /**
-         * Converts an integer value into a [Type].
+         * Converts an integer value into a [SocketType].
          */
-        public fun from(value: Int): Type = Type(value)
+        public fun from(value: Int): SocketType = SocketType(value)
 
         /**
          * Type corresponding to [SOCK_STREAM].
          *
          * Used for protocols such as TCP.
          */
-        public val STREAM: Type = Type(SOCK_STREAM)
+        public val STREAM: SocketType = SocketType(SOCK_STREAM)
 
         /**
          * Type corresponding to [SOCK_DGRAM].
          *
          * Used for protocols such as UDP.
          */
-        public val DGRAM: Type = Type(SOCK_DGRAM)
+        public val DGRAM: SocketType = SocketType(SOCK_DGRAM)
 
         /**
          * Type corresponding to [SOCK_DCCP].
          *
          * Used for the DCCP protocol.
          */
-        public val DCCP: Type = Type(SOCK_DCCP)
+        public val DCCP: SocketType = SocketType(SOCK_DCCP)
 
         /**
          * Type corresponding to [SOCK_SEQPACKET].
          */
-        public val SEQPACKET: Type = Type(SOCK_SEQPACKET)
+        public val SEQPACKET: SocketType = SocketType(SOCK_SEQPACKET)
 
         /**
          * Type corresponding to [SOCK_RAW].
          */
-        public val RAW: Type = Type(SOCK_RAW)
+        public val RAW: SocketType = SocketType(SOCK_RAW)
     }
 }
 
