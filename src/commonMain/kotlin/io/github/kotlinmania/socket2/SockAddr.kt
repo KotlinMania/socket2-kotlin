@@ -2,16 +2,18 @@
 package io.github.kotlinmania.socket2
 
 import io.github.kotlinmania.libc.SockaddrStorage
+import io.github.kotlinmania.libc.SaFamilyT as LibcSaFamilyT
+import io.github.kotlinmania.libc.SocklenT as LibcSocklenT
 
 /**
  * The integer type used with `getsockname` on this platform.
  */
-public typealias SocklenT = UInt
+public typealias SocklenT = LibcSocklenT
 
 /**
  * The integer type for the address family on this platform.
  */
-public typealias SaFamilyT = UShort
+public typealias SaFamilyT = LibcSaFamilyT
 
 /**
  * Kotlin version of the `sockaddr_storage` type.
