@@ -2,15 +2,21 @@
 package io.github.kotlinmania.socket2
 
 /**
- * Protocol specification used for creating sockets via `Socket.new`.
+ * Protocol specification used for creating sockets via [Socket.new].
  *
- * This is a data class wrapper around an Int which provides a nicer API.
+ * This is a wrapper around an integer which provides a nicer API in
+ * addition to an injection point for documentation.
  *
- * This type is freely interconvertible with Int.
+ * This type is freely interconvertible with C's int type, however, if a raw
+ * value needs to be provided.
  */
+public typealias Protocol = SocketProtocol
+
 public data class SocketProtocol(
     public val value: Int,
 ) {
+    public fun toInt(): Int = value
+
     override fun toString(): String =
         when (value) {
             IPPROTO_ICMP -> "IPPROTO_ICMP"
@@ -25,72 +31,77 @@ public data class SocketProtocol(
             else -> value.toString()
         }
 
+    /**
+     * Formats this protocol for debugging.
+     */
+    public fun fmt(): String = toString()
+
     public companion object {
         /**
-         * Protocol corresponding to `ICMPv4`.
+         * Converts an integer value into a [SocketProtocol].
+         */
+        public fun from(value: Int): SocketProtocol = SocketProtocol(value)
+
+        /**
+         * Protocol corresponding to [IPPROTO_ICMP].
          */
         public val ICMPV4: SocketProtocol = SocketProtocol(IPPROTO_ICMP)
 
         /**
-         * Protocol corresponding to `ICMPv6`.
+         * Protocol corresponding to [IPPROTO_ICMPV6].
          */
         public val ICMPV6: SocketProtocol = SocketProtocol(IPPROTO_ICMPV6)
 
         /**
-         * Protocol corresponding to `TCP`.
+         * Protocol corresponding to [IPPROTO_TCP].
          */
         public val TCP: SocketProtocol = SocketProtocol(IPPROTO_TCP)
 
         /**
-         * Protocol corresponding to `UDP`.
+         * Protocol corresponding to [IPPROTO_UDP].
          */
         public val UDP: SocketProtocol = SocketProtocol(IPPROTO_UDP)
 
         /**
-         * Protocol corresponding to `MPTCP`.
+         * Protocol corresponding to [IPPROTO_MPTCP].
          * Linux-specific.
          */
         public val MPTCP: SocketProtocol = SocketProtocol(IPPROTO_MPTCP)
 
         /**
-         * Protocol corresponding to `DCCP`.
-         * Linux-specific with `all` feature.
+         * Protocol corresponding to [IPPROTO_DCCP].
          */
         public val DCCP: SocketProtocol = SocketProtocol(IPPROTO_DCCP)
 
         /**
-         * Protocol corresponding to `SCTP`.
-         * Available on FreeBSD and Linux with `all` feature.
+         * Protocol corresponding to [IPPROTO_SCTP].
          */
         public val SCTP: SocketProtocol = SocketProtocol(IPPROTO_SCTP)
 
         /**
-         * Protocol corresponding to `UDPLITE`.
-         * Available on Android, FreeBSD, Fuchsia, Linux with `all` feature.
+         * Protocol corresponding to [IPPROTO_UDPLITE].
          */
         public val UDPLITE: SocketProtocol = SocketProtocol(IPPROTO_UDPLITE)
 
         /**
-         * Protocol corresponding to `DIVERT`.
-         * Available on FreeBSD and OpenBSD with `all` feature.
+         * Protocol corresponding to [IPPROTO_DIVERT].
          */
         public val DIVERT: SocketProtocol = SocketProtocol(IPPROTO_DIVERT)
     }
 }
 
-// Callers migrated:
-// - Protocol -> io.github.kotlinmania.socket2.SocketProtocol
-
 /**
  * Platform-specific protocol constants.
- * These will be provided by platform-specific implementations.
  */
-internal expect val IPPROTO_ICMP: Int
-internal expect val IPPROTO_ICMPV6: Int
-internal expect val IPPROTO_TCP: Int
-internal expect val IPPROTO_UDP: Int
-internal expect val IPPROTO_MPTCP: Int
-internal expect val IPPROTO_DCCP: Int
-internal expect val IPPROTO_SCTP: Int
-internal expect val IPPROTO_UDPLITE: Int
-internal expect val IPPROTO_DIVERT: Int
+internal const val IPPROTO_IP: Int = 0
+internal const val IPPROTO_ICMP: Int = 1
+internal const val IPPROTO_TCP: Int = 6
+internal const val IPPROTO_UDP: Int = 17
+internal const val IPPROTO_DCCP: Int = 33
+internal const val IPPROTO_IPV6: Int = 41
+internal const val IPPROTO_ICMPV6: Int = 58
+internal const val IPPROTO_SCTP: Int = 132
+internal const val IPPROTO_UDPLITE: Int = 136
+internal const val IPPROTO_DIVERT: Int = 254
+internal const val IPPROTO_RAW: Int = 255
+internal const val IPPROTO_MPTCP: Int = 262

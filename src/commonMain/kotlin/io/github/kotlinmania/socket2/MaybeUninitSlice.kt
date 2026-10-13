@@ -7,9 +7,7 @@ package io.github.kotlinmania.socket2
  * This is used for receiving data into buffers that haven't been initialized yet,
  * which is safe because the OS will write the data before we read it.
  *
- * In Rust, this wraps `MaybeUninit<u8>` slices. In Kotlin, we use ByteArray
- * as the underlying representation since Kotlin doesn't have an equivalent to
- * MaybeUninit.
+ * In Kotlin, [ByteArray] is used as the underlying representation.
  */
 public class MaybeUninitSlice(
     /**

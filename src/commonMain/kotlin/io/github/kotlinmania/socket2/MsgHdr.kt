@@ -7,7 +7,7 @@ import io.github.kotlinmania.libc.musl.sys.Msghdr
 /**
  * Configuration of a `sendmsg(2)` system call.
  *
- * This wraps `msghdr` on Unix and `WSAMSG` on Windows. Also see [MsgHdrMut]
+ * This wraps [Msghdr] on Unix and `WSAMSG` on Windows. Also see [MsgHdrMut]
  * for the variant used by `recvmsg(2)`.
  *
  * Not available on Redox.

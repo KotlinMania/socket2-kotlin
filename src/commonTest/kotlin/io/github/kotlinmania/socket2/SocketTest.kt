@@ -6,6 +6,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 class SocketTest {
@@ -224,10 +225,9 @@ class SocketTest {
 
     @Test
     fun connectTimeoutUnrouteable() {
-        // 10.255.255.1:80 is unroutable; connection should fail or time out
         val addr = SockAddr.from(Socket2SocketAddress.V4("10.255.255.1", 80))
         val socket = Socket.new(Domain.IPV4, SocketType.STREAM, null).getOrNull() ?: return
-        val result = socket.connect(addr)
+        val result = socket.connectTimeout(addr, 250.milliseconds)
         assertTrue(result.isFailure)
     }
 
@@ -244,16 +244,29 @@ class SocketTest {
     fun connectTimeoutValid() {
         val listener = Socket.new(Domain.IPV4, SocketType.STREAM, null).getOrNull() ?: return
         val addr = anyIpv4()
-        listener.bind(addr)
-        listener.listen(128)
+        listener.bind(addr).getOrThrow()
+        listener.listen(128).getOrThrow()
+        val localAddr = listener.localAddr().getOrThrow()
+        val client = Socket.new(Domain.IPV4, SocketType.STREAM, null).getOrThrow()
+        client.connectTimeout(localAddr, 250.milliseconds).getOrThrow()
+        val (server, _) = listener.accept().getOrThrow()
+        client.close().getOrThrow()
+        server.close().getOrThrow()
+        listener.close().getOrThrow()
     }
 
     @Test
     fun pair() {
-        val socketA = Socket.new(Domain.IPV4, SocketType.DGRAM, null).getOrNull() ?: return
-        val socketB = Socket.new(Domain.IPV4, SocketType.DGRAM, null).getOrNull() ?: return
-        assertNotNull(socketA)
-        assertNotNull(socketB)
+        val pairResult = Socket.pair(Domain.UNIX, SocketType.STREAM, null)
+        val (socketA, socketB) = pairResult.getOrNull() ?: return
+        val sent = socketA.send(DATA, 0).getOrThrow()
+        assertEquals(DATA.size, sent)
+        val buf = ByteArray(DATA.size + 1)
+        val n = socketB.recv(buf, 0).getOrThrow()
+        assertEquals(DATA.size, n)
+        assertEquals(DATA.decodeToString(), buf.copyOf(n).decodeToString())
+        socketA.close().getOrThrow()
+        socketB.close().getOrThrow()
     }
 
     fun unixSocketsSupported(): Boolean = true
@@ -261,17 +274,44 @@ class SocketTest {
     @Test
     fun unix() {
         if (!unixSocketsSupported()) return
-        val addr = SockAddr.unix("/tmp/test_socket2_unix").getOrNull() ?: return
+        val path = "/tmp/test_socket2_unix_${kotlin.random.Random.nextInt(100000)}"
+        val addr = SockAddr.unix(path).getOrNull() ?: return
         val listener = Socket.new(Domain.UNIX, SocketType.STREAM, null).getOrNull() ?: return
-        assertNotNull(listener)
+        listener.bind(addr).getOrThrow()
+        listener.listen(10).getOrThrow()
+
+        val client = Socket.new(Domain.UNIX, SocketType.STREAM, null).getOrThrow()
+        client.connect(addr).getOrThrow()
+        val (server, _) = listener.accept().getOrThrow()
+
+        val sent = client.send(DATA, 0).getOrThrow()
+        assertEquals(DATA.size, sent)
+        val buf = ByteArray(DATA.size + 1)
+        val n = server.recv(buf, 0).getOrThrow()
+        assertEquals(DATA.size, n)
+        assertEquals(DATA.decodeToString(), buf.copyOf(n).decodeToString())
+
+        client.close().getOrThrow()
+        server.close().getOrThrow()
+        listener.close().getOrThrow()
     }
 
     @Test
     fun unixAccept() {
         if (!unixSocketsSupported()) return
-        val addr = SockAddr.unix("/tmp/test_socket2_unix_accept").getOrNull() ?: return
+        val path = "/tmp/test_socket2_unix_accept_${kotlin.random.Random.nextInt(100000)}"
+        val addr = SockAddr.unix(path).getOrNull() ?: return
         val listener = Socket.new(Domain.UNIX, SocketType.STREAM, null).getOrNull() ?: return
-        assertNotNull(listener)
+        listener.bind(addr).getOrThrow()
+        listener.listen(1).getOrThrow()
+
+        val client = Socket.new(Domain.UNIX, SocketType.STREAM, null).getOrThrow()
+        client.connect(addr).getOrThrow()
+        val (server, _) = listener.accept().getOrThrow()
+
+        client.close().getOrThrow()
+        server.close().getOrThrow()
+        listener.close().getOrThrow()
     }
 
     @Test
@@ -286,10 +326,22 @@ class SocketTest {
 
     @Test
     fun udpPeekSender() {
-        val pair = udpPairConnected() ?: return
-        val (socketA, socketB) = pair
-        assertNotNull(socketA)
-        assertNotNull(socketB)
+        val server = Socket.new(Domain.IPV4, SocketType.DGRAM, SocketProtocol.UDP).getOrNull() ?: return
+        server.bind(anyIpv4()).getOrThrow()
+        val serverAddr = server.localAddr().getOrThrow()
+
+        val client = Socket.new(Domain.IPV4, SocketType.DGRAM, SocketProtocol.UDP).getOrThrow()
+        val sent = client.sendTo(DATA, 0, serverAddr).getOrThrow()
+        assertEquals(DATA.size, sent)
+
+        val buf = ByteArray(DATA.size + 1)
+        val (n, fromAddr) = server.recvFrom(buf, 0).getOrThrow()
+        assertNotNull(fromAddr)
+        assertEquals(DATA.size, n)
+        assertEquals(DATA.decodeToString(), buf.copyOf(n).decodeToString())
+
+        client.close().getOrThrow()
+        server.close().getOrThrow()
     }
 
     @Test

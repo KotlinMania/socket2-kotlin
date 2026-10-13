@@ -2,17 +2,29 @@
 package io.github.kotlinmania.socket2
 
 /**
- * Shutdown options for sockets.
- *
- * Specifies which parts of a socket connection to shut down.
+ * Possible values which can be passed to the [Socket.shutdown] method.
  */
-public enum class Shutdown {
-    /** Further receives will be disallowed */
-    Read,
+public enum class Shutdown(
+    public val value: Int,
+) {
+    /**
+     * The reading portion of the socket connection should be shut down.
+     *
+     * All currently blocked and future reads will return 0 bytes.
+     */
+    Read(0),
 
-    /** Further sends will be disallowed */
-    Write,
+    /**
+     * The writing portion of the socket connection should be shut down.
+     *
+     * All currently blocked and future writes will return an error.
+     */
+    Write(1),
 
-    /** Further sends and receives will be disallowed */
-    Both,
+    /**
+     * Both the reading and the writing portions of the socket connection should be shut down.
+     *
+     * See [Shutdown.Read] and [Shutdown.Write] for more information.
+     */
+    Both(2),
 }

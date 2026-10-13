@@ -4,9 +4,8 @@
   "description": "N-API C++ addon providing direct socket bindings for Kotlin/JS and Kotlin/WASM targets",
   "main": "index.js",
   "scripts": {
-    "install": "node-gyp rebuild",
+    "configure": "node-gyp configure",
     "build": "node-gyp build",
-    "rebuild": "node-gyp rebuild",
     "clean": "node-gyp clean"
   },
   "dependencies": {
