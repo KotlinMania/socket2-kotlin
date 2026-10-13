@@ -235,7 +235,7 @@ internal fun connectTimeout(fd: RawSocket, addr: SockAddr, timeout: kotlin.time.
 }
 
 /**
- * Tests for the existence of a socket file at socket_path.
+ * Tests for the existence of a socket file at [path].
  * Returns true if socket file exists, false otherwise.
  */
 @OptIn(ExperimentalForeignApi::class)

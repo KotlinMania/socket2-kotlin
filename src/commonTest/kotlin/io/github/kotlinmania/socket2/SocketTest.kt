@@ -14,9 +14,9 @@ class SocketTest {
 
     @Test
     fun domainForAddress() {
-        val ipv4: Socket2SocketAddress = Socket2SocketAddress.V4("127.0.0.1", 8080)
+        val ipv4: SocketAddr = SocketAddr.V4("127.0.0.1", 8080)
         assertTrue(ipv4.isIpv4())
-        val ipv6: Socket2SocketAddress = Socket2SocketAddress.V6("::1", 8080)
+        val ipv6: SocketAddr = SocketAddr.V6("::1", 8080)
         assertTrue(ipv6.isIpv6())
 
         assertEquals(Domain.IPV4, Domain.forAddress(ipv4))
@@ -118,7 +118,7 @@ class SocketTest {
     @Test
     fun socketAddressVsock() {
         // AF_VSOCK is Linux-specific low-level hypervisor-guest socket family
-        val addr = SockAddr.from(Socket2SocketAddress.V4("127.0.0.1", 9999))
+        val addr = SockAddr.from(SocketAddr.V4("127.0.0.1", 9999))
         assertNotNull(addr)
     }
 
@@ -225,7 +225,7 @@ class SocketTest {
 
     @Test
     fun connectTimeoutUnrouteable() {
-        val addr = SockAddr.from(Socket2SocketAddress.V4("10.255.255.1", 80))
+        val addr = SockAddr.from(SocketAddr.V4("10.255.255.1", 80))
         val socket = Socket.new(Domain.IPV4, SocketType.STREAM, null).getOrNull() ?: return
         val result = socket.connectTimeout(addr, 250.milliseconds)
         assertTrue(result.isFailure)
@@ -234,7 +234,7 @@ class SocketTest {
     @Test
     fun connectTimeoutUnbound() {
         // Connecting to an unbound local port should fail with connection refused
-        val addr = SockAddr.from(Socket2SocketAddress.V4("127.0.0.1", 65432))
+        val addr = SockAddr.from(SocketAddr.V4("127.0.0.1", 65432))
         val socket = Socket.new(Domain.IPV4, SocketType.STREAM, null).getOrNull() ?: return
         val result = socket.connect(addr)
         assertTrue(result.isFailure)
@@ -274,7 +274,7 @@ class SocketTest {
     @Test
     fun unix() {
         if (!unixSocketsSupported()) return
-        val path = "/tmp/test_socket2_unix_${kotlin.random.Random.nextInt(100000)}"
+        val path = "/tmp/test-socket2-unix-${kotlin.random.Random.nextInt(100000)}"
         val addr = SockAddr.unix(path).getOrNull() ?: return
         val listener = Socket.new(Domain.UNIX, SocketType.STREAM, null).getOrNull() ?: return
         listener.bind(addr).getOrThrow()
@@ -299,7 +299,7 @@ class SocketTest {
     @Test
     fun unixAccept() {
         if (!unixSocketsSupported()) return
-        val path = "/tmp/test_socket2_unix_accept_${kotlin.random.Random.nextInt(100000)}"
+        val path = "/tmp/test-socket2-unix-accept-${kotlin.random.Random.nextInt(100000)}"
         val addr = SockAddr.unix(path).getOrNull() ?: return
         val listener = Socket.new(Domain.UNIX, SocketType.STREAM, null).getOrNull() ?: return
         listener.bind(addr).getOrThrow()
@@ -448,7 +448,7 @@ class SocketTest {
         assertEquals(null, s)
     }
 
-    fun anyIpv4(): SockAddr = SockAddr.from(Socket2SocketAddress.V4("127.0.0.1", 0))
+    fun anyIpv4(): SockAddr = SockAddr.from(SocketAddr.V4("127.0.0.1", 0))
 
     fun assumeInit(buf: ByteArray): ByteArray = buf
 

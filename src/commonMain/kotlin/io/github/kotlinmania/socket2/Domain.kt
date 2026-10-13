@@ -67,10 +67,10 @@ public data class Domain(
         /**
          * Returns the correct domain for [address].
          */
-        public fun forAddress(address: Socket2SocketAddress): Domain =
+        public fun forAddress(address: SocketAddr): Domain =
             when (address) {
-                is Socket2SocketAddress.V4 -> IPV4
-                is Socket2SocketAddress.V6 -> IPV6
+                is SocketAddr.V4 -> IPV4
+                is SocketAddr.V6 -> IPV6
             }
 
         /**
