@@ -2,10 +2,18 @@
 package io.github.kotlinmania.socket2
 
 /**
- * A reference to a [Socket] that can be used to configure socket types.
+ * Target type for dereference operations.
+ */
+public typealias Target = Socket
+
+/**
+ * A reference to a [Socket] that can be used to configure socket types other
+ * than the [Socket] type itself.
  *
- * This allows a socket to be configured using all the methods found in the [Socket] API
- * without taking ownership of the socket or closing it when the reference is disposed.
+ * This allows for example a stream, found in standard or platform libraries, to
+ * be configured using all the additional methods found in the [Socket] API.
+ *
+ * [SockRef] can be created from any socket type using the [from] implementation.
  */
 public class SockRef(
     public val socket: Socket,
@@ -15,6 +23,16 @@ public class SockRef(
          * Creates a [SockRef] from a [Socket].
          */
         public fun from(socket: Socket): SockRef = SockRef(socket)
+
+        /**
+         * Creates a [SockRef] from a raw socket descriptor.
+         *
+         * The caller must ensure the descriptor is valid.
+         */
+        public fun from(raw: Int): SockRef {
+            require(raw >= 0) { "Invalid socket descriptor: $raw" }
+            return SockRef(Socket.fromRaw(raw))
+        }
     }
 
     /**
@@ -45,12 +63,18 @@ public class SockRef(
     /**
      * Receives data on the socket from the remote address to which it is connected.
      */
-    public fun recv(buffer: ByteArray, flags: Int = 0): Result<Int> = socket.recv(buffer, flags)
+    public fun recv(
+        buffer: ByteArray,
+        flags: Int = 0,
+    ): Result<Int> = socket.recv(buffer, flags)
 
     /**
      * Transmits data on the socket to the given remote address.
      */
-    public fun send(buffer: ByteArray, flags: Int = 0): Result<Int> = socket.send(buffer, flags)
+    public fun send(
+        buffer: ByteArray,
+        flags: Int = 0,
+    ): Result<Int> = socket.send(buffer, flags)
 
     /**
      * Closes the socket.
@@ -60,12 +84,13 @@ public class SockRef(
     /**
      * Returns the underlying [Socket].
      */
-    public fun deref(): Socket = socket
+    public fun deref(): Target = socket
 
     /**
      * Formats this reference for debugging.
      */
-    public fun fmt(): String = toString()
+    public fun fmt(): String =
+        "SockRef { raw: ${socket.asRaw()}, localAddr: ${socket.localAddr().getOrNull()}, peerAddr: ${socket.peerAddr().getOrNull()} }"
 
-    override fun toString(): String = "SockRef(socket=$socket)"
+    override fun toString(): String = fmt()
 }
