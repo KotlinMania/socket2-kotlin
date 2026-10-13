@@ -127,6 +127,8 @@ internal actual class SysSocket internal constructor(
         Result.failure(UnsupportedOperationException("SysSocket not available on Android JVM runtime — use androidNative for NDK sockets"))
 
     actual companion object {
+        actual fun fromRaw(raw: Int): SysSocket = SysSocket(raw)
+
         actual fun new(
             domain: Domain,
             type: SocketType,

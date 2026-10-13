@@ -119,6 +119,8 @@ internal actual class SysSocket internal constructor(
     actual fun setTtl(ttl: UInt): Result<Unit> = setsockoptInt(rawSocket, IPPROTO_IP_VAL, IP_TTL_VAL, ttl.toInt())
 
     actual companion object {
+        actual fun fromRaw(raw: Int): SysSocket = SysSocket(RawSocket(raw))
+
         actual fun new(
             domain: Domain,
             type: SocketType,

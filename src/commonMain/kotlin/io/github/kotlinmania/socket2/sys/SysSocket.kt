@@ -99,6 +99,8 @@ internal expect class SysSocket {
     fun setTtl(ttl: UInt): Result<Unit>
 
     companion object {
+        fun fromRaw(raw: Int): SysSocket
+
         fun new(
             domain: Domain,
             type: SocketType,
