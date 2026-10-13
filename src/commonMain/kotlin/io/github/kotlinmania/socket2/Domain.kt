@@ -1,6 +1,13 @@
 // port-lint: source lib.rs
 package io.github.kotlinmania.socket2
 
+import io.github.kotlinmania.libc.unix.bsd.apple.AF_INET
+import io.github.kotlinmania.libc.unix.bsd.apple.AF_INET6
+import io.github.kotlinmania.libc.unix.bsd.apple.AF_UNIX
+import io.github.kotlinmania.libc.unix.bsd.apple.AF_UNSPEC
+import io.github.kotlinmania.libc.unix.bsd.apple.AF_VSOCK
+import io.github.kotlinmania.libc.unix.linuxlike.AF_PACKET
+
 /**
  * Specification of the communication domain for a socket.
  *
@@ -24,7 +31,7 @@ public data class Domain(
             AF_UNIX -> "AF_UNIX"
             AF_PACKET -> "AF_PACKET"
             AF_VSOCK -> "AF_VSOCK"
-            0 -> "AF_UNSPEC"
+            AF_UNSPEC -> "AF_UNSPEC"
             else -> value.toString()
         }
 
@@ -90,13 +97,3 @@ public data class Domain(
             }
     }
 }
-
-/**
- * Platform-specific socket address family constants.
- */
-internal const val AF_UNSPEC: Int = 0
-internal const val AF_UNIX: Int = 1
-internal const val AF_INET: Int = 2
-internal const val AF_INET6: Int = 30
-internal const val AF_PACKET: Int = 17
-internal const val AF_VSOCK: Int = 40

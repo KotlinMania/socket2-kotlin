@@ -1,6 +1,16 @@
 // port-lint: source lib.rs
 package io.github.kotlinmania.socket2
 
+import io.github.kotlinmania.libc.unix.IPPROTO_ICMP
+import io.github.kotlinmania.libc.unix.IPPROTO_ICMPV6
+import io.github.kotlinmania.libc.unix.IPPROTO_TCP
+import io.github.kotlinmania.libc.unix.IPPROTO_UDP
+import io.github.kotlinmania.libc.unix.bsd.apple.IPPROTO_DIVERT
+import io.github.kotlinmania.libc.unix.linuxlike.IPPROTO_DCCP
+import io.github.kotlinmania.libc.unix.linuxlike.IPPROTO_MPTCP
+import io.github.kotlinmania.libc.unix.linuxlike.IPPROTO_SCTP
+import io.github.kotlinmania.libc.unix.linuxlike.IPPROTO_UDPLITE
+
 /**
  * Protocol specification used for creating sockets via [Socket.new].
  *
@@ -94,19 +104,3 @@ public data class SocketProtocol(
         public val DIVERT: SocketProtocol = SocketProtocol(IPPROTO_DIVERT)
     }
 }
-
-/**
- * Platform-specific protocol constants.
- */
-internal const val IPPROTO_IP: Int = 0
-internal const val IPPROTO_ICMP: Int = 1
-internal const val IPPROTO_TCP: Int = 6
-internal const val IPPROTO_UDP: Int = 17
-internal const val IPPROTO_DCCP: Int = 33
-internal const val IPPROTO_IPV6: Int = 41
-internal const val IPPROTO_ICMPV6: Int = 58
-internal const val IPPROTO_SCTP: Int = 132
-internal const val IPPROTO_UDPLITE: Int = 136
-internal const val IPPROTO_DIVERT: Int = 254
-internal const val IPPROTO_RAW: Int = 255
-internal const val IPPROTO_MPTCP: Int = 262
