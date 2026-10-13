@@ -9,49 +9,6 @@ import io.github.kotlinmania.socket2.SockAddrStorage
 import io.github.kotlinmania.socket2.SocketProtocol
 import io.github.kotlinmania.socket2.SocketType
 import io.github.kotlinmania.socket2.cinterop.Socket2AddrStorage
-import io.github.kotlinmania.socket2.cinterop.socket2_accept
-import io.github.kotlinmania.socket2.cinterop.socket2_addr_storage_free
-import io.github.kotlinmania.socket2.cinterop.socket2_addr_storage_get_family
-import io.github.kotlinmania.socket2.cinterop.socket2_addr_storage_get_padding
-import io.github.kotlinmania.socket2.cinterop.socket2_addr_storage_new
-import io.github.kotlinmania.socket2.cinterop.socket2_addr_storage_set_family
-import io.github.kotlinmania.socket2.cinterop.socket2_addr_storage_set_padding
-import io.github.kotlinmania.socket2.cinterop.socket2_bind
-import io.github.kotlinmania.socket2.cinterop.socket2_close
-import io.github.kotlinmania.socket2.cinterop.socket2_connect
-import io.github.kotlinmania.socket2.cinterop.socket2_get_errno
-import io.github.kotlinmania.socket2.cinterop.socket2_get_error_string
-import io.github.kotlinmania.socket2.cinterop.socket2_get_nonblocking
-import io.github.kotlinmania.socket2.cinterop.socket2_getpeername
-import io.github.kotlinmania.socket2.cinterop.socket2_getsockname
-import io.github.kotlinmania.socket2.cinterop.socket2_getsockopt
-import io.github.kotlinmania.socket2.cinterop.socket2_listen
-import io.github.kotlinmania.socket2.cinterop.socket2_opt_ip_ttl
-import io.github.kotlinmania.socket2.cinterop.socket2_opt_ipproto_ip
-import io.github.kotlinmania.socket2.cinterop.socket2_opt_ipproto_tcp
-import io.github.kotlinmania.socket2.cinterop.socket2_opt_so_broadcast
-import io.github.kotlinmania.socket2.cinterop.socket2_opt_so_error
-import io.github.kotlinmania.socket2.cinterop.socket2_opt_so_keepalive
-import io.github.kotlinmania.socket2.cinterop.socket2_opt_so_rcvbuf
-import io.github.kotlinmania.socket2.cinterop.socket2_opt_so_reuseaddr
-import io.github.kotlinmania.socket2.cinterop.socket2_opt_so_reuseport
-import io.github.kotlinmania.socket2.cinterop.socket2_opt_so_sndbuf
-import io.github.kotlinmania.socket2.cinterop.socket2_opt_so_type
-import io.github.kotlinmania.socket2.cinterop.socket2_opt_sol_socket
-import io.github.kotlinmania.socket2.cinterop.socket2_opt_tcp_nodelay
-import io.github.kotlinmania.socket2.cinterop.socket2_poll_connect
-import io.github.kotlinmania.socket2.cinterop.socket2_recv
-import io.github.kotlinmania.socket2.cinterop.socket2_recvfrom
-import io.github.kotlinmania.socket2.cinterop.socket2_send
-import io.github.kotlinmania.socket2.cinterop.socket2_sendto
-import io.github.kotlinmania.socket2.cinterop.socket2_set_nonblocking
-import io.github.kotlinmania.socket2.cinterop.socket2_setsockopt
-import io.github.kotlinmania.socket2.cinterop.socket2_shutdown
-import io.github.kotlinmania.socket2.cinterop.socket2_socket
-import io.github.kotlinmania.socket2.cinterop.socket2_socket_exists
-import io.github.kotlinmania.socket2.cinterop.socket2_socketpair
-import io.github.kotlinmania.socket2.cinterop.socket2_try_clone
-import io.github.kotlinmania.socket2.cinterop.socket_exists
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.IntVar
@@ -65,10 +22,51 @@ import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
 import kotlinx.cinterop.reinterpret
 import kotlinx.cinterop.sizeOf
-import kotlinx.cinterop.toKString
 import kotlinx.cinterop.usePinned
 import kotlinx.cinterop.value
 import kotlin.time.Duration
+import io.github.kotlinmania.libc.unix.access as libcAccess
+import io.github.kotlinmania.libc.unix.close as libcClose
+import io.github.kotlinmania.libc.unix.listen as libcListen
+import io.github.kotlinmania.libc.unix.shutdown as libcShutdown
+import io.github.kotlinmania.libc.unix.socket as libcSocket
+import io.github.kotlinmania.libc.unix.strerror as libcStrerror
+import io.github.kotlinmania.socket2.cinterop.socket2_accept as socket2Accept
+import io.github.kotlinmania.socket2.cinterop.socket2_addr_storage_free as socket2AddrStorageFree
+import io.github.kotlinmania.socket2.cinterop.socket2_addr_storage_get_family as socket2AddrStorageGetFamily
+import io.github.kotlinmania.socket2.cinterop.socket2_addr_storage_get_padding as socket2AddrStorageGetPadding
+import io.github.kotlinmania.socket2.cinterop.socket2_addr_storage_new as socket2AddrStorageNew
+import io.github.kotlinmania.socket2.cinterop.socket2_addr_storage_set_family as socket2AddrStorageSetFamily
+import io.github.kotlinmania.socket2.cinterop.socket2_addr_storage_set_padding as socket2AddrStorageSetPadding
+import io.github.kotlinmania.socket2.cinterop.socket2_bind as socket2Bind
+import io.github.kotlinmania.socket2.cinterop.socket2_connect as socket2Connect
+import io.github.kotlinmania.socket2.cinterop.socket2_get_errno as socket2GetErrno
+import io.github.kotlinmania.socket2.cinterop.socket2_get_nonblocking as socket2GetNonblocking
+import io.github.kotlinmania.socket2.cinterop.socket2_getpeername as socket2Getpeername
+import io.github.kotlinmania.socket2.cinterop.socket2_getsockname as socket2Getsockname
+import io.github.kotlinmania.socket2.cinterop.socket2_getsockopt as socket2Getsockopt
+import io.github.kotlinmania.socket2.cinterop.socket2_opt_ip_ttl as socket2OptIpTtl
+import io.github.kotlinmania.socket2.cinterop.socket2_opt_ipproto_ip as socket2OptIpprotoIp
+import io.github.kotlinmania.socket2.cinterop.socket2_opt_ipproto_tcp as socket2OptIpprotoTcp
+import io.github.kotlinmania.socket2.cinterop.socket2_opt_so_broadcast as socket2OptSoBroadcast
+import io.github.kotlinmania.socket2.cinterop.socket2_opt_so_error as socket2OptSoError
+import io.github.kotlinmania.socket2.cinterop.socket2_opt_so_keepalive as socket2OptSoKeepalive
+import io.github.kotlinmania.socket2.cinterop.socket2_opt_so_rcvbuf as socket2OptSoRcvbuf
+import io.github.kotlinmania.socket2.cinterop.socket2_opt_so_reuseaddr as socket2OptSoReuseaddr
+import io.github.kotlinmania.socket2.cinterop.socket2_opt_so_reuseport as socket2OptSoReuseport
+import io.github.kotlinmania.socket2.cinterop.socket2_opt_so_sndbuf as socket2OptSoSndbuf
+import io.github.kotlinmania.socket2.cinterop.socket2_opt_so_type as socket2OptSoType
+import io.github.kotlinmania.socket2.cinterop.socket2_opt_sol_socket as socket2OptSolSocket
+import io.github.kotlinmania.socket2.cinterop.socket2_opt_tcp_nodelay as socket2OptTcpNodelay
+import io.github.kotlinmania.socket2.cinterop.socket2_poll_connect as socket2PollConnect
+import io.github.kotlinmania.socket2.cinterop.socket2_recv as socket2Recv
+import io.github.kotlinmania.socket2.cinterop.socket2_recvfrom as socket2Recvfrom
+import io.github.kotlinmania.socket2.cinterop.socket2_send as socket2Send
+import io.github.kotlinmania.socket2.cinterop.socket2_sendto as socket2Sendto
+import io.github.kotlinmania.socket2.cinterop.socket2_set_nonblocking as socket2SetNonblocking
+import io.github.kotlinmania.socket2.cinterop.socket2_setsockopt as socket2Setsockopt
+import io.github.kotlinmania.socket2.cinterop.socket2_socketpair as socket2Socketpair
+import io.github.kotlinmania.socket2.cinterop.socket2_try_clone as socket2TryClone
 
 /**
  * Native platform actual implementation using C wrapper via cinterop.
@@ -242,52 +240,52 @@ internal const val SHUT_RDWR: Int = 2
 
 // Socket option constants
 @OptIn(ExperimentalForeignApi::class)
-internal val SOL_SOCKET_VAL: Int get() = socket2_opt_sol_socket()
+internal val SOL_SOCKET_VAL: Int get() = socket2OptSolSocket()
 
 @OptIn(ExperimentalForeignApi::class)
-internal val SO_REUSEADDR_VAL: Int get() = socket2_opt_so_reuseaddr()
+internal val SO_REUSEADDR_VAL: Int get() = socket2OptSoReuseaddr()
 
 @OptIn(ExperimentalForeignApi::class)
-internal val SO_REUSEPORT_VAL: Int get() = socket2_opt_so_reuseport()
+internal val SO_REUSEPORT_VAL: Int get() = socket2OptSoReuseport()
 
 @OptIn(ExperimentalForeignApi::class)
-internal val SO_BROADCAST_VAL: Int get() = socket2_opt_so_broadcast()
+internal val SO_BROADCAST_VAL: Int get() = socket2OptSoBroadcast()
 
 @OptIn(ExperimentalForeignApi::class)
-internal val SO_KEEPALIVE_VAL: Int get() = socket2_opt_so_keepalive()
+internal val SO_KEEPALIVE_VAL: Int get() = socket2OptSoKeepalive()
 
 @OptIn(ExperimentalForeignApi::class)
-internal val SO_SNDBUF_VAL: Int get() = socket2_opt_so_sndbuf()
+internal val SO_SNDBUF_VAL: Int get() = socket2OptSoSndbuf()
 
 @OptIn(ExperimentalForeignApi::class)
-internal val SO_RCVBUF_VAL: Int get() = socket2_opt_so_rcvbuf()
+internal val SO_RCVBUF_VAL: Int get() = socket2OptSoRcvbuf()
 
 @OptIn(ExperimentalForeignApi::class)
-internal val SO_ERROR_VAL: Int get() = socket2_opt_so_error()
+internal val SO_ERROR_VAL: Int get() = socket2OptSoError()
 
 @OptIn(ExperimentalForeignApi::class)
-internal val SO_TYPE_VAL: Int get() = socket2_opt_so_type()
+internal val SO_TYPE_VAL: Int get() = socket2OptSoType()
 
 @OptIn(ExperimentalForeignApi::class)
-internal val IPPROTO_TCP_VAL: Int get() = socket2_opt_ipproto_tcp()
+internal val IPPROTO_TCP_VAL: Int get() = socket2OptIpprotoTcp()
 
 @OptIn(ExperimentalForeignApi::class)
-internal val TCP_NODELAY_VAL: Int get() = socket2_opt_tcp_nodelay()
+internal val TCP_NODELAY_VAL: Int get() = socket2OptTcpNodelay()
 
 @OptIn(ExperimentalForeignApi::class)
-internal val IPPROTO_IP_VAL: Int get() = socket2_opt_ipproto_ip()
+internal val IPPROTO_IP_VAL: Int get() = socket2OptIpprotoIp()
 
 @OptIn(ExperimentalForeignApi::class)
-internal val IP_TTL_VAL: Int get() = socket2_opt_ip_ttl()
+internal val IP_TTL_VAL: Int get() = socket2OptIpTtl()
 
 @OptIn(ExperimentalForeignApi::class)
 internal fun extractSockAddr(storage: CPointer<Socket2AddrStorage>, len: UInt): SockAddr {
-    val family = socket2_addr_storage_get_family(storage)
+    val family = socket2AddrStorageGetFamily(storage)
     val padding = ByteArray(126)
     val paddingLen = padding.size.toUInt()
     padding.usePinned { pinned ->
         val paddingPtr = pinned.addressOf(0).reinterpret<UByteVar>()
-        socket2_addr_storage_get_padding(storage, paddingPtr, paddingLen)
+        socket2AddrStorageGetPadding(storage, paddingPtr, paddingLen)
     }
     val kotlinStorage =
         SockaddrStorage(
@@ -301,10 +299,10 @@ internal fun extractSockAddr(storage: CPointer<Socket2AddrStorage>, len: UInt): 
 
 @OptIn(ExperimentalForeignApi::class)
 internal fun socket(family: Int, type: Int, protocol: Int): Result<RawSocket> {
-    val fd = socket2_socket(family, type, protocol)
+    val fd = libcSocket(family, type, protocol)
     return if (fd == -1) {
-        val errnoVal = socket2_get_errno()
-        val errMsg = socket2_get_error_string(errnoVal)?.toKString() ?: "Unknown error (errno=$errnoVal)"
+        val errnoVal = socket2GetErrno()
+        val errMsg = libcStrerror(errnoVal) ?: "Unknown error (errno=$errnoVal)"
         Result.failure(IOException("socket() failed: $errMsg"))
     } else {
         Result.success(RawSocket(fd))
@@ -313,49 +311,49 @@ internal fun socket(family: Int, type: Int, protocol: Int): Result<RawSocket> {
 
 @OptIn(ExperimentalForeignApi::class)
 internal fun bind(fd: RawSocket, addr: SockAddr): Result<Unit> {
-    val storage = socket2_addr_storage_new() ?: return Result.failure(IOException("Failed to allocate address storage"))
+    val storage = socket2AddrStorageNew() ?: return Result.failure(IOException("Failed to allocate address storage"))
     try {
-        socket2_addr_storage_set_family(storage, addr.storage.ssFamily)
+        socket2AddrStorageSetFamily(storage, addr.storage.ssFamily)
         val padding = addr.storage.padding
         val paddingLen = padding.size.toUInt()
         padding.usePinned { pinned ->
             val paddingPtr = pinned.addressOf(0).reinterpret<UByteVar>()
-            socket2_addr_storage_set_padding(storage, paddingPtr, paddingLen)
+            socket2AddrStorageSetPadding(storage, paddingPtr, paddingLen)
         }
-        val result = socket2_bind(fd.fd, storage, addr.len())
+        val result = socket2Bind(fd.fd, storage, addr.len())
         return if (result == -1) {
-            val errnoVal = socket2_get_errno()
-            val errMsg = socket2_get_error_string(errnoVal)?.toKString() ?: "Unknown error (errno=$errnoVal)"
+            val errnoVal = socket2GetErrno()
+            val errMsg = libcStrerror(errnoVal) ?: "Unknown error (errno=$errnoVal)"
             Result.failure(IOException("bind() failed: $errMsg"))
         } else {
             Result.success(Unit)
         }
     } finally {
-        socket2_addr_storage_free(storage)
+        socket2AddrStorageFree(storage)
     }
 }
 
 @OptIn(ExperimentalForeignApi::class)
 internal fun connect(fd: RawSocket, addr: SockAddr): Result<Unit> {
-    val storage = socket2_addr_storage_new() ?: return Result.failure(IOException("Failed to allocate address storage"))
+    val storage = socket2AddrStorageNew() ?: return Result.failure(IOException("Failed to allocate address storage"))
     try {
-        socket2_addr_storage_set_family(storage, addr.storage.ssFamily)
+        socket2AddrStorageSetFamily(storage, addr.storage.ssFamily)
         val padding = addr.storage.padding
         val paddingLen = padding.size.toUInt()
         padding.usePinned { pinned ->
             val paddingPtr = pinned.addressOf(0).reinterpret<UByteVar>()
-            socket2_addr_storage_set_padding(storage, paddingPtr, paddingLen)
+            socket2AddrStorageSetPadding(storage, paddingPtr, paddingLen)
         }
-        val result = socket2_connect(fd.fd, storage, addr.len())
+        val result = socket2Connect(fd.fd, storage, addr.len())
         return if (result == -1) {
-            val errnoVal = socket2_get_errno()
-            val errMsg = socket2_get_error_string(errnoVal)?.toKString() ?: "Unknown error (errno=$errnoVal)"
+            val errnoVal = socket2GetErrno()
+            val errMsg = libcStrerror(errnoVal) ?: "Unknown error (errno=$errnoVal)"
             Result.failure(IOException("connect() failed: $errMsg"))
         } else {
             Result.success(Unit)
         }
     } finally {
-        socket2_addr_storage_free(storage)
+        socket2AddrStorageFree(storage)
     }
 }
 
@@ -368,7 +366,7 @@ internal fun connectTimeout(fd: RawSocket, addr: SockAddr, timeout: kotlin.time.
         return Result.success(Unit)
     }
     val timeoutMs = timeout.inWholeMilliseconds.coerceIn(1, Int.MAX_VALUE.toLong()).toInt()
-    val pollRes = socket2_poll_connect(fd.fd, timeoutMs)
+    val pollRes = socket2PollConnect(fd.fd, timeoutMs)
     return when {
         pollRes == 0 -> {
             Result.failure(IOException("Connection timed out"))
@@ -383,8 +381,8 @@ internal fun connectTimeout(fd: RawSocket, addr: SockAddr, timeout: kotlin.time.
                     Result.failure(IOException("Connection error"))
                 }
             } else {
-                val errnoVal = socket2_get_errno()
-                Result.failure(IOException("poll() failed: ${socket2_get_error_string(errnoVal)?.toKString()}"))
+                val errnoVal = socket2GetErrno()
+                Result.failure(IOException("poll() failed: ${libcStrerror(errnoVal) ?: "errno=$errnoVal"}"))
             }
         }
 
@@ -400,14 +398,14 @@ internal fun connectTimeout(fd: RawSocket, addr: SockAddr, timeout: kotlin.time.
  */
 @OptIn(ExperimentalForeignApi::class)
 internal fun socketExists(path: String): Boolean =
-    socket_exists(path) != 0
+    libcAccess(path, 0) == 0
 
 @OptIn(ExperimentalForeignApi::class)
 internal fun listen(fd: RawSocket, backlog: Int): Result<Unit> {
-    val result = socket2_listen(fd.fd, backlog)
+    val result = libcListen(fd.fd, backlog)
     return if (result == -1) {
-        val errnoVal = socket2_get_errno()
-        val errMsg = socket2_get_error_string(errnoVal)?.toKString() ?: "Unknown error (errno=$errnoVal)"
+        val errnoVal = socket2GetErrno()
+        val errMsg = libcStrerror(errnoVal) ?: "Unknown error (errno=$errnoVal)"
         Result.failure(IOException("listen() failed: $errMsg"))
     } else {
         Result.success(Unit)
@@ -417,61 +415,61 @@ internal fun listen(fd: RawSocket, backlog: Int): Result<Unit> {
 @OptIn(ExperimentalForeignApi::class)
 internal fun accept(fd: RawSocket): Result<Pair<RawSocket, SockAddr>> =
     memScoped {
-        val storage = socket2_addr_storage_new() ?: return Result.failure(IOException("Failed to allocate address storage"))
+        val storage = socket2AddrStorageNew() ?: return Result.failure(IOException("Failed to allocate address storage"))
         try {
             val addrLen = alloc<UIntVar>()
             addrLen.value = 128u
-            val newFd = socket2_accept(fd.fd, storage, addrLen.ptr)
+            val newFd = socket2Accept(fd.fd, storage, addrLen.ptr)
             if (newFd == -1) {
-                val errnoVal = socket2_get_errno()
-                val errMsg = socket2_get_error_string(errnoVal)?.toKString() ?: "Unknown error (errno=$errnoVal)"
+                val errnoVal = socket2GetErrno()
+                val errMsg = libcStrerror(errnoVal) ?: "Unknown error (errno=$errnoVal)"
                 Result.failure(IOException("accept() failed: $errMsg"))
             } else {
                 val addr = extractSockAddr(storage, addrLen.value)
                 Result.success(Pair(RawSocket(newFd), addr))
             }
         } finally {
-            socket2_addr_storage_free(storage)
+            socket2AddrStorageFree(storage)
         }
     }
 
 @OptIn(ExperimentalForeignApi::class)
 internal fun getsockname(fd: RawSocket): Result<SockAddr> =
     memScoped {
-        val storage = socket2_addr_storage_new() ?: return Result.failure(IOException("Failed to allocate address storage"))
+        val storage = socket2AddrStorageNew() ?: return Result.failure(IOException("Failed to allocate address storage"))
         try {
             val addrLen = alloc<UIntVar>()
             addrLen.value = 128u
-            val res = socket2_getsockname(fd.fd, storage, addrLen.ptr)
+            val res = socket2Getsockname(fd.fd, storage, addrLen.ptr)
             if (res == -1) {
-                val errnoVal = socket2_get_errno()
-                val errMsg = socket2_get_error_string(errnoVal)?.toKString() ?: "Unknown error (errno=$errnoVal)"
+                val errnoVal = socket2GetErrno()
+                val errMsg = libcStrerror(errnoVal) ?: "Unknown error (errno=$errnoVal)"
                 Result.failure(IOException("getsockname() failed: $errMsg"))
             } else {
                 Result.success(extractSockAddr(storage, addrLen.value))
             }
         } finally {
-            socket2_addr_storage_free(storage)
+            socket2AddrStorageFree(storage)
         }
     }
 
 @OptIn(ExperimentalForeignApi::class)
 internal fun getpeername(fd: RawSocket): Result<SockAddr> =
     memScoped {
-        val storage = socket2_addr_storage_new() ?: return Result.failure(IOException("Failed to allocate address storage"))
+        val storage = socket2AddrStorageNew() ?: return Result.failure(IOException("Failed to allocate address storage"))
         try {
             val addrLen = alloc<UIntVar>()
             addrLen.value = 128u
-            val res = socket2_getpeername(fd.fd, storage, addrLen.ptr)
+            val res = socket2Getpeername(fd.fd, storage, addrLen.ptr)
             if (res == -1) {
-                val errnoVal = socket2_get_errno()
-                val errMsg = socket2_get_error_string(errnoVal)?.toKString() ?: "Unknown error (errno=$errnoVal)"
+                val errnoVal = socket2GetErrno()
+                val errMsg = libcStrerror(errnoVal) ?: "Unknown error (errno=$errnoVal)"
                 Result.failure(IOException("getpeername() failed: $errMsg"))
             } else {
                 Result.success(extractSockAddr(storage, addrLen.value))
             }
         } finally {
-            socket2_addr_storage_free(storage)
+            socket2AddrStorageFree(storage)
         }
     }
 
@@ -479,10 +477,10 @@ internal fun getpeername(fd: RawSocket): Result<SockAddr> =
 internal fun socketpair(family: Int, type: Int, protocol: Int): Result<Pair<RawSocket, RawSocket>> =
     memScoped {
         val sv = allocArray<IntVar>(2)
-        val res = socket2_socketpair(family, type, protocol, sv)
+        val res = socket2Socketpair(family, type, protocol, sv)
         if (res == -1) {
-            val errnoVal = socket2_get_errno()
-            val errMsg = socket2_get_error_string(errnoVal)?.toKString() ?: "Unknown error (errno=$errnoVal)"
+            val errnoVal = socket2GetErrno()
+            val errMsg = libcStrerror(errnoVal) ?: "Unknown error (errno=$errnoVal)"
             Result.failure(IOException("socketpair() failed: $errMsg"))
         } else {
             Result.success(Pair(RawSocket(sv[0]), RawSocket(sv[1])))
@@ -491,11 +489,11 @@ internal fun socketpair(family: Int, type: Int, protocol: Int): Result<Pair<RawS
 
 @OptIn(ExperimentalForeignApi::class)
 internal fun tryClone(fd: RawSocket): Result<RawSocket> {
-    val newFd = socket2_try_clone(fd.fd)
+    val newFd = socket2TryClone(fd.fd)
     return if (newFd == -1) {
-        val errnoVal = socket2_get_errno()
-        val errMsg = socket2_get_error_string(errnoVal)?.toKString() ?: "Unknown error (errno=$errnoVal)"
-        Result.failure(IOException("try_clone() failed: $errMsg"))
+        val errnoVal = socket2GetErrno()
+        val errMsg = libcStrerror(errnoVal) ?: "Unknown error (errno=$errnoVal)"
+        Result.failure(IOException("tryClone() failed: $errMsg"))
     } else {
         Result.success(RawSocket(newFd))
     }
@@ -503,11 +501,11 @@ internal fun tryClone(fd: RawSocket): Result<RawSocket> {
 
 @OptIn(ExperimentalForeignApi::class)
 internal fun setNonblocking(fd: RawSocket, nonblocking: Boolean): Result<Unit> {
-    val res = socket2_set_nonblocking(fd.fd, if (nonblocking) 1 else 0)
+    val res = socket2SetNonblocking(fd.fd, if (nonblocking) 1 else 0)
     return if (res == -1) {
-        val errnoVal = socket2_get_errno()
-        val errMsg = socket2_get_error_string(errnoVal)?.toKString() ?: "Unknown error (errno=$errnoVal)"
-        Result.failure(IOException("set_nonblocking() failed: $errMsg"))
+        val errnoVal = socket2GetErrno()
+        val errMsg = libcStrerror(errnoVal) ?: "Unknown error (errno=$errnoVal)"
+        Result.failure(IOException("setNonblocking() failed: $errMsg"))
     } else {
         Result.success(Unit)
     }
@@ -515,10 +513,10 @@ internal fun setNonblocking(fd: RawSocket, nonblocking: Boolean): Result<Unit> {
 
 @OptIn(ExperimentalForeignApi::class)
 internal fun nonblocking(fd: RawSocket): Result<Boolean> {
-    val res = socket2_get_nonblocking(fd.fd)
+    val res = socket2GetNonblocking(fd.fd)
     return if (res == -1) {
-        val errnoVal = socket2_get_errno()
-        val errMsg = socket2_get_error_string(errnoVal)?.toKString() ?: "Unknown error (errno=$errnoVal)"
+        val errnoVal = socket2GetErrno()
+        val errMsg = libcStrerror(errnoVal) ?: "Unknown error (errno=$errnoVal)"
         Result.failure(IOException("nonblocking() failed: $errMsg"))
     } else {
         Result.success(res != 0)
@@ -531,10 +529,10 @@ internal fun getsockoptInt(fd: RawSocket, level: Int, optname: Int): Result<Int>
         val optval = alloc<IntVar>()
         val optlen = alloc<UIntVar>()
         optlen.value = sizeOf<IntVar>().toUInt()
-        val res = socket2_getsockopt(fd.fd, level, optname, optval.ptr, optlen.ptr)
+        val res = socket2Getsockopt(fd.fd, level, optname, optval.ptr, optlen.ptr)
         if (res == -1) {
-            val errnoVal = socket2_get_errno()
-            val errMsg = socket2_get_error_string(errnoVal)?.toKString() ?: "Unknown error (errno=$errnoVal)"
+            val errnoVal = socket2GetErrno()
+            val errMsg = libcStrerror(errnoVal) ?: "Unknown error (errno=$errnoVal)"
             Result.failure(IOException("getsockopt() failed: $errMsg"))
         } else {
             Result.success(optval.value)
@@ -546,10 +544,10 @@ internal fun setsockoptInt(fd: RawSocket, level: Int, optname: Int, value: Int):
     memScoped {
         val optval = alloc<IntVar>()
         optval.value = value
-        val res = socket2_setsockopt(fd.fd, level, optname, optval.ptr, sizeOf<IntVar>().toUInt())
+        val res = socket2Setsockopt(fd.fd, level, optname, optval.ptr, sizeOf<IntVar>().toUInt())
         if (res == -1) {
-            val errnoVal = socket2_get_errno()
-            val errMsg = socket2_get_error_string(errnoVal)?.toKString() ?: "Unknown error (errno=$errnoVal)"
+            val errnoVal = socket2GetErrno()
+            val errMsg = libcStrerror(errnoVal) ?: "Unknown error (errno=$errnoVal)"
             Result.failure(IOException("setsockopt() failed: $errMsg"))
         } else {
             Result.success(Unit)
@@ -558,10 +556,10 @@ internal fun setsockoptInt(fd: RawSocket, level: Int, optname: Int, value: Int):
 
 @OptIn(ExperimentalForeignApi::class)
 internal fun shutdown(fd: RawSocket, how: Int): Result<Unit> {
-    val result = socket2_shutdown(fd.fd, how)
+    val result = libcShutdown(fd.fd, how)
     return if (result == -1) {
-        val errnoVal = socket2_get_errno()
-        val errMsg = socket2_get_error_string(errnoVal)?.toKString() ?: "Unknown error (errno=$errnoVal)"
+        val errnoVal = socket2GetErrno()
+        val errMsg = libcStrerror(errnoVal) ?: "Unknown error (errno=$errnoVal)"
         Result.failure(IOException("shutdown() failed: $errMsg"))
     } else {
         Result.success(Unit)
@@ -571,10 +569,10 @@ internal fun shutdown(fd: RawSocket, how: Int): Result<Unit> {
 @OptIn(ExperimentalForeignApi::class, ExperimentalUnsignedTypes::class)
 internal fun recv(fd: RawSocket, buffer: ByteArray, flags: Int): Result<Int> =
     buffer.usePinned { pinned ->
-        val bytesRead = socket2_recv(fd.fd, pinned.addressOf(0), buffer.size.toULong(), flags).toInt()
+        val bytesRead = socket2Recv(fd.fd, pinned.addressOf(0), buffer.size.toULong(), flags).toInt()
         if (bytesRead == -1) {
-            val errnoVal = socket2_get_errno()
-            val errMsg = socket2_get_error_string(errnoVal)?.toKString() ?: "Unknown error (errno=$errnoVal)"
+            val errnoVal = socket2GetErrno()
+            val errMsg = libcStrerror(errnoVal) ?: "Unknown error (errno=$errnoVal)"
             Result.failure(IOException("recv() failed: $errMsg"))
         } else {
             Result.success(bytesRead)
@@ -584,15 +582,15 @@ internal fun recv(fd: RawSocket, buffer: ByteArray, flags: Int): Result<Int> =
 @OptIn(ExperimentalForeignApi::class, ExperimentalUnsignedTypes::class)
 internal fun recvfrom(fd: RawSocket, buffer: ByteArray, flags: Int): Result<Pair<Int, SockAddr>> =
     memScoped {
-        val storage = socket2_addr_storage_new() ?: return Result.failure(IOException("Failed to allocate address storage"))
+        val storage = socket2AddrStorageNew() ?: return Result.failure(IOException("Failed to allocate address storage"))
         try {
             val addrLen = alloc<UIntVar>()
             addrLen.value = 128u
             buffer.usePinned { pinned ->
-                val bytesRead = socket2_recvfrom(fd.fd, pinned.addressOf(0), buffer.size.toULong(), flags, storage, addrLen.ptr).toInt()
+                val bytesRead = socket2Recvfrom(fd.fd, pinned.addressOf(0), buffer.size.toULong(), flags, storage, addrLen.ptr).toInt()
                 if (bytesRead == -1) {
-                    val errnoVal = socket2_get_errno()
-                    val errMsg = socket2_get_error_string(errnoVal)?.toKString() ?: "Unknown error (errno=$errnoVal)"
+                    val errnoVal = socket2GetErrno()
+                    val errMsg = libcStrerror(errnoVal) ?: "Unknown error (errno=$errnoVal)"
                     Result.failure(IOException("recvfrom() failed: $errMsg"))
                 } else {
                     val addr = extractSockAddr(storage, addrLen.value)
@@ -600,17 +598,17 @@ internal fun recvfrom(fd: RawSocket, buffer: ByteArray, flags: Int): Result<Pair
                 }
             }
         } finally {
-            socket2_addr_storage_free(storage)
+            socket2AddrStorageFree(storage)
         }
     }
 
 @OptIn(ExperimentalForeignApi::class, ExperimentalUnsignedTypes::class)
 internal fun send(fd: RawSocket, buffer: ByteArray, flags: Int): Result<Int> =
     buffer.usePinned { pinned ->
-        val bytesSent = socket2_send(fd.fd, pinned.addressOf(0), buffer.size.toULong(), flags).toInt()
+        val bytesSent = socket2Send(fd.fd, pinned.addressOf(0), buffer.size.toULong(), flags).toInt()
         if (bytesSent == -1) {
-            val errnoVal = socket2_get_errno()
-            val errMsg = socket2_get_error_string(errnoVal)?.toKString() ?: "Unknown error (errno=$errnoVal)"
+            val errnoVal = socket2GetErrno()
+            val errMsg = libcStrerror(errnoVal) ?: "Unknown error (errno=$errnoVal)"
             Result.failure(IOException("send() failed: $errMsg"))
         } else {
             Result.success(bytesSent)
@@ -619,36 +617,36 @@ internal fun send(fd: RawSocket, buffer: ByteArray, flags: Int): Result<Int> =
 
 @OptIn(ExperimentalForeignApi::class, ExperimentalUnsignedTypes::class)
 internal fun sendto(fd: RawSocket, buffer: ByteArray, flags: Int, addr: SockAddr): Result<Int> {
-    val storage = socket2_addr_storage_new() ?: return Result.failure(IOException("Failed to allocate address storage"))
+    val storage = socket2AddrStorageNew() ?: return Result.failure(IOException("Failed to allocate address storage"))
     try {
-        socket2_addr_storage_set_family(storage, addr.storage.ssFamily)
+        socket2AddrStorageSetFamily(storage, addr.storage.ssFamily)
         val padding = addr.storage.padding
         val paddingLen = padding.size.toUInt()
         padding.usePinned { pinned ->
             val paddingPtr = pinned.addressOf(0).reinterpret<UByteVar>()
-            socket2_addr_storage_set_padding(storage, paddingPtr, paddingLen)
+            socket2AddrStorageSetPadding(storage, paddingPtr, paddingLen)
         }
         return buffer.usePinned { pinned ->
-            val bytesSent = socket2_sendto(fd.fd, pinned.addressOf(0), buffer.size.toULong(), flags, storage, addr.len()).toInt()
+            val bytesSent = socket2Sendto(fd.fd, pinned.addressOf(0), buffer.size.toULong(), flags, storage, addr.len()).toInt()
             if (bytesSent == -1) {
-                val errnoVal = socket2_get_errno()
-                val errMsg = socket2_get_error_string(errnoVal)?.toKString() ?: "Unknown error (errno=$errnoVal)"
+                val errnoVal = socket2GetErrno()
+                val errMsg = libcStrerror(errnoVal) ?: "Unknown error (errno=$errnoVal)"
                 Result.failure(IOException("sendto() failed: $errMsg"))
             } else {
                 Result.success(bytesSent)
             }
         }
     } finally {
-        socket2_addr_storage_free(storage)
+        socket2AddrStorageFree(storage)
     }
 }
 
 @OptIn(ExperimentalForeignApi::class)
 internal fun close(fd: RawSocket): Result<Unit> {
-    val result = socket2_close(fd.fd)
+    val result = libcClose(fd.fd)
     return if (result == -1) {
-        val errnoVal = socket2_get_errno()
-        val errMsg = socket2_get_error_string(errnoVal)?.toKString() ?: "Unknown error (errno=$errnoVal)"
+        val errnoVal = socket2GetErrno()
+        val errMsg = libcStrerror(errnoVal) ?: "Unknown error (errno=$errnoVal)"
         Result.failure(IOException("close() failed: $errMsg"))
     } else {
         Result.success(Unit)
