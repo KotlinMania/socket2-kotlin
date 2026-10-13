@@ -9,13 +9,25 @@
 #ifdef _WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include <io.h>
+#ifndef F_OK
+#define F_OK 0
+#endif
+#ifndef WSA_FLAG_NO_HANDLE_INHERIT
+#define WSA_FLAG_NO_HANDLE_INHERIT 0x80
+#endif
+#ifndef WSA_FLAG_REGISTERED_IO
+#define WSA_FLAG_REGISTERED_IO 0x100
+#endif
 #else
+#include <stdio.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <poll.h>
 #endif
 
 #ifdef __cplusplus
@@ -290,6 +302,61 @@ static inline int socket2_opt_ipproto_tcp(void) { return IPPROTO_TCP; }
 static inline int socket2_opt_tcp_nodelay(void) { return TCP_NODELAY; }
 static inline int socket2_opt_ipproto_ip(void) { return IPPROTO_IP; }
 static inline int socket2_opt_ip_ttl(void) { return IP_TTL; }
+
+/**
+ * Tests for the existence of a socket file at socket_path.
+ * Returns 1 if socket file exists, 0 otherwise.
+ */
+static inline int socket_exists(const char *socket_path) {
+#ifdef _WIN32
+    if (_access(socket_path, 0) == 0) {
+        return 1; // Socket file exists
+    }
+    return 0; // Socket file does not exist
+#else
+    // F_OK tests for the existence of the file
+    if (access(socket_path, F_OK) == 0) {
+        return 1; // Socket file exists
+    }
+    return 0; // Socket file does not exist
+#endif
+}
+
+static inline int socket2_socket_exists(const char *socket_path) {
+    return socket_exists(socket_path);
+}
+
+/**
+ * Polls for connection completion with a timeout in milliseconds.
+ * Returns:
+ *   1 if connected
+ *   0 if timed out
+ *  -1 on system error (check errno/WSAGetLastError)
+ *  -2 if socket error occurred (POLLHUP or POLLERR)
+ */
+static inline int socket2_poll_connect(int sockfd, int timeout_ms) {
+#ifdef _WIN32
+    WSAPOLLFD pfd;
+    pfd.fd = (SOCKET)sockfd;
+    pfd.events = POLLRDNORM | POLLWRNORM;
+    pfd.revents = 0;
+    int res = WSAPoll(&pfd, 1, timeout_ms);
+    if (res == 0) return 0;
+    if (res < 0) return -1;
+    if (pfd.revents & (POLLHUP | POLLERR)) return -2;
+    return 1;
+#else
+    struct pollfd pfd;
+    pfd.fd = sockfd;
+    pfd.events = POLLIN | POLLOUT;
+    pfd.revents = 0;
+    int res = poll(&pfd, 1, timeout_ms);
+    if (res == 0) return 0;
+    if (res < 0) return -1;
+    if (pfd.revents & (POLLHUP | POLLERR)) return -2;
+    return 1;
+#endif
+}
 
 #ifdef __cplusplus
 }

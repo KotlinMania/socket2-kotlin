@@ -204,34 +204,34 @@ internal fun connectTimeout(fd: RawSocket, addr: SockAddr, timeout: kotlin.time.
     if (res.isSuccess) {
         return Result.success(Unit)
     }
-    return memScoped {
-        val pfd = alloc<platform.posix.pollfd>()
-        pfd.fd = fd.fd
-        pfd.events = (platform.posix.POLLIN or platform.posix.POLLOUT).toShort()
-        pfd.revents = 0
-        val timeoutMs = timeout.inWholeMilliseconds.coerceIn(1, Int.MAX_VALUE.toLong()).toInt()
-        val pollRes = platform.posix.poll(pfd.ptr, 1u, timeoutMs)
-        when {
-            pollRes == 0 -> Result.failure(IOException("Connection timed out"))
-            pollRes < 0 -> {
-                val errnoVal = platform.posix.errno
-                Result.failure(IOException("poll() failed: ${platform.posix.strerror(errnoVal)?.toKString()}"))
-            }
-            else -> {
-                if ((pfd.revents.toInt() and (platform.posix.POLLHUP or platform.posix.POLLERR)) != 0) {
-                    val err = getsockoptInt(fd, SOL_SOCKET_VAL, SO_ERROR_VAL).getOrNull() ?: 0
-                    if (err != 0) {
-                        Result.failure(IOException("Connection error: $err"))
-                    } else {
-                        Result.failure(IOException("Connection error"))
-                    }
+    val timeoutMs = timeout.inWholeMilliseconds.coerceIn(1, Int.MAX_VALUE.toLong()).toInt()
+    val pollRes = socket2_poll_connect(fd.fd, timeoutMs)
+    return when {
+        pollRes == 0 -> Result.failure(IOException("Connection timed out"))
+        pollRes < 0 -> {
+            if (pollRes == -2) {
+                val err = getsockoptInt(fd, SOL_SOCKET_VAL, SO_ERROR_VAL).getOrNull() ?: 0
+                if (err != 0) {
+                    Result.failure(IOException("Connection error: $err"))
                 } else {
-                    Result.success(Unit)
+                    Result.failure(IOException("Connection error"))
                 }
+            } else {
+                val errnoVal = socket2_get_errno()
+                Result.failure(IOException("poll() failed: ${socket2_get_error_string(errnoVal)?.toKString()}"))
             }
         }
+        else -> Result.success(Unit)
     }
 }
+
+/**
+ * Tests for the existence of a socket file at socket_path.
+ * Returns true if socket file exists, false otherwise.
+ */
+@OptIn(ExperimentalForeignApi::class)
+internal fun socketExists(path: String): Boolean =
+    socket_exists(path) != 0
 
 @OptIn(ExperimentalForeignApi::class)
 internal fun listen(fd: RawSocket, backlog: Int): Result<Unit> {

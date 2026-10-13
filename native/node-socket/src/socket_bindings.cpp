@@ -331,6 +331,27 @@ Napi::Value Send(const Napi::CallbackInfo& info) {
 }
 
 /**
+ * Tests for the existence of a socket file at socket_path.
+ *
+ * Direct binding to access(2) with F_OK.
+ * JS signature: socket_exists(socket_path: string): boolean
+ * Returns: boolean indicating whether socket file exists
+ */
+Napi::Value SocketExists(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+
+    if (info.Length() < 1 || !info[0].IsString()) {
+        Napi::TypeError::New(env, "Expected string argument: socket_path")
+            .ThrowAsJavaScriptException();
+        return env.Null();
+    }
+
+    std::string path = info[0].As<Napi::String>().Utf8Value();
+    int exists = (::access(path.c_str(), F_OK) == 0) ? 1 : 0;
+    return Napi::Boolean::New(env, exists != 0);
+}
+
+/**
  * Initialize the N-API module.
  * Exports all socket functions to JavaScript.
  */
@@ -344,6 +365,8 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
     exports.Set("close", Napi::Function::New(env, Close));
     exports.Set("recv", Napi::Function::New(env, Recv));
     exports.Set("send", Napi::Function::New(env, Send));
+    exports.Set("socket_exists", Napi::Function::New(env, SocketExists));
+    exports.Set("socketExists", Napi::Function::New(env, SocketExists));
 
     // Export constants
     exports.Set("AF_INET", Napi::Number::New(env, AF_INET));
