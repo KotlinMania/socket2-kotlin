@@ -336,6 +336,7 @@ class SocketTest {
 
         val buf = ByteArray(DATA.size + 1)
         val (n, fromAddr) = server.recvFrom(buf, 0).getOrThrow()
+        assertNotNull(fromAddr)
         assertEquals(DATA.size, n)
         assertEquals(DATA.decodeToString(), buf.copyOf(n).decodeToString())
 
