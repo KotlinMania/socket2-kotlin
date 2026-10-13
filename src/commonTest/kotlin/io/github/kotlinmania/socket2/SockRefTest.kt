@@ -48,4 +48,15 @@ class SockRefTest {
 
         sockRef.close()
     }
+
+    @Test
+    fun testSockRefFromRawAndTargetTypealias() {
+        val target: Target? = Socket.new(Domain.IPV4, SocketType.STREAM, null).getOrNull()
+        if (target == null) return
+        val raw = target.asRaw()
+        val sockRef = SockRef.from(raw)
+        assertNotNull(sockRef)
+        assertEquals(raw, sockRef.deref().asRaw())
+        target.close()
+    }
 }
