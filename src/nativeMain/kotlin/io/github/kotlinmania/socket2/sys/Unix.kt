@@ -2,6 +2,9 @@
 package io.github.kotlinmania.socket2.sys
 
 import io.github.kotlinmania.libc.SockaddrStorage
+import io.github.kotlinmania.libc.unix.bsd.apple.SHUT_RD
+import io.github.kotlinmania.libc.unix.bsd.apple.SHUT_RDWR
+import io.github.kotlinmania.libc.unix.bsd.apple.SHUT_WR
 import io.github.kotlinmania.socket2.Domain
 import io.github.kotlinmania.socket2.Shutdown
 import io.github.kotlinmania.socket2.SockAddr
@@ -232,11 +235,6 @@ internal actual class SysSocket internal constructor(
         }
     }
 }
-
-// Shutdown constants
-internal const val SHUT_RD: Int = 0
-internal const val SHUT_WR: Int = 1
-internal const val SHUT_RDWR: Int = 2
 
 // Socket option constants
 @OptIn(ExperimentalForeignApi::class)

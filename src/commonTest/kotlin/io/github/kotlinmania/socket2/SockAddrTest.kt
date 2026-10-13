@@ -2,6 +2,9 @@
 package io.github.kotlinmania.socket2
 
 import io.github.kotlinmania.libc.SockaddrStorage
+import io.github.kotlinmania.libc.unix.bsd.apple.AF_INET
+import io.github.kotlinmania.libc.unix.bsd.apple.AF_INET6
+import io.github.kotlinmania.libc.unix.bsd.apple.AF_UNIX
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith

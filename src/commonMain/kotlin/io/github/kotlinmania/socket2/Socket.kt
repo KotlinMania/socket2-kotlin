@@ -1,6 +1,8 @@
 // port-lint: source socket.rs
 package io.github.kotlinmania.socket2
 
+import io.github.kotlinmania.libc.unix.bsd.apple.MSG_OOB
+import io.github.kotlinmania.libc.unix.bsd.apple.MSG_PEEK
 import io.github.kotlinmania.socket2.sys.SysSocket
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -560,5 +562,3 @@ internal fun intoLinger(duration: Duration?): Pair<Int, Int> =
     } else {
         Pair(0, 0)
     }
-
-internal const val MSG_PEEK: Int = 0x2

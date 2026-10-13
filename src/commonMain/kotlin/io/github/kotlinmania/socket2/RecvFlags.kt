@@ -1,6 +1,12 @@
 // port-lint: source lib.rs
 package io.github.kotlinmania.socket2
 
+import io.github.kotlinmania.libc.unix.bsd.apple.MSG_DONTROUTE
+import io.github.kotlinmania.libc.unix.bsd.apple.MSG_EOR
+import io.github.kotlinmania.libc.unix.bsd.apple.MSG_OOB
+import io.github.kotlinmania.libc.unix.bsd.apple.MSG_TRUNC
+import io.github.kotlinmania.libc.unix.linuxlike.MSG_CONFIRM
+
 /**
  * Flags for incoming messages.
  *
@@ -63,12 +69,3 @@ public data class RecvFlags(
      */
     public fun fmt(): String = toString()
 }
-
-/**
- * Platform-specific message flags.
- */
-internal const val MSG_OOB: Int = 0x1
-internal const val MSG_DONTROUTE: Int = 0x4
-internal const val MSG_EOR: Int = 0x8
-internal const val MSG_TRUNC: Int = 0x10
-internal const val MSG_CONFIRM: Int = 0x800

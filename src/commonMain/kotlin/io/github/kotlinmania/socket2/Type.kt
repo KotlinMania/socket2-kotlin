@@ -1,6 +1,15 @@
 // port-lint: source lib.rs
 package io.github.kotlinmania.socket2
 
+import io.github.kotlinmania.libc.fuchsia.SOCK_DCCP
+import io.github.kotlinmania.libc.fuchsia.SOCK_NONBLOCK
+import io.github.kotlinmania.libc.unix.bsd.apple.SOCK_DGRAM
+import io.github.kotlinmania.libc.unix.bsd.apple.SOCK_RAW
+import io.github.kotlinmania.libc.unix.bsd.apple.SOCK_RDM
+import io.github.kotlinmania.libc.unix.bsd.apple.SOCK_SEQPACKET
+import io.github.kotlinmania.libc.unix.bsd.apple.SOCK_STREAM
+import io.github.kotlinmania.libc.unix.solarish.SOCK_CLOEXEC
+
 /**
  * Specification of communication semantics on a socket.
  *
@@ -25,6 +34,7 @@ public data class SocketType(
             SOCK_DGRAM -> "SOCK_DGRAM"
             SOCK_SEQPACKET -> "SOCK_SEQPACKET"
             SOCK_RAW -> "SOCK_RAW"
+            SOCK_RDM -> "SOCK_RDM"
             SOCK_DCCP -> "SOCK_DCCP"
             else -> value.toString()
         }
@@ -87,15 +97,3 @@ public data class SocketType(
         public val RAW: SocketType = SocketType(SOCK_RAW)
     }
 }
-
-/**
- * Platform-specific socket type constants.
- */
-internal const val SOCK_STREAM: Int = 1
-internal const val SOCK_DGRAM: Int = 2
-internal const val SOCK_RAW: Int = 3
-internal const val SOCK_RDM: Int = 4
-internal const val SOCK_SEQPACKET: Int = 5
-internal const val SOCK_DCCP: Int = 6
-internal const val SOCK_NONBLOCK: Int = 0x800
-internal const val SOCK_CLOEXEC: Int = 0x80000
