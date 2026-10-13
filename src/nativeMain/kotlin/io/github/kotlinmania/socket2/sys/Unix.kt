@@ -35,6 +35,7 @@ import io.github.kotlinmania.socket2.cinterop.socket2_opt_so_sndbuf
 import io.github.kotlinmania.socket2.cinterop.socket2_opt_so_type
 import io.github.kotlinmania.socket2.cinterop.socket2_opt_sol_socket
 import io.github.kotlinmania.socket2.cinterop.socket2_opt_tcp_nodelay
+import io.github.kotlinmania.socket2.cinterop.socket2_poll_connect
 import io.github.kotlinmania.socket2.cinterop.socket2_recv
 import io.github.kotlinmania.socket2.cinterop.socket2_recvfrom
 import io.github.kotlinmania.socket2.cinterop.socket2_send
@@ -43,8 +44,10 @@ import io.github.kotlinmania.socket2.cinterop.socket2_set_nonblocking
 import io.github.kotlinmania.socket2.cinterop.socket2_setsockopt
 import io.github.kotlinmania.socket2.cinterop.socket2_shutdown
 import io.github.kotlinmania.socket2.cinterop.socket2_socket
+import io.github.kotlinmania.socket2.cinterop.socket2_socket_exists
 import io.github.kotlinmania.socket2.cinterop.socket2_socketpair
 import io.github.kotlinmania.socket2.cinterop.socket2_try_clone
+import io.github.kotlinmania.socket2.cinterop.socket_exists
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.IntVar

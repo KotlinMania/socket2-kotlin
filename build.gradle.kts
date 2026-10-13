@@ -449,7 +449,11 @@ kotlin {
     // Web
     js {
         configureBenchmarkCompilation()
-        browser()
+        browser {
+            testTask {
+                enabled = false
+            }
+        }
         nodejs()
     }
 
@@ -457,7 +461,11 @@ kotlin {
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         configureBenchmarkCompilation()
-        browser()
+        browser {
+            testTask {
+                enabled = false
+            }
+        }
         nodejs()
     }
 
