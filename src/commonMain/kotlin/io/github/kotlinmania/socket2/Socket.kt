@@ -26,6 +26,8 @@ public expect class Socket {
 
     public fun connect(address: SockAddr): Result<Unit>
 
+    public fun connectTimeout(address: SockAddr, timeout: kotlin.time.Duration): Result<Unit>
+
     public fun listen(backlog: Int): Result<Unit>
 
     public fun accept(): Result<Pair<Socket, SockAddr>>

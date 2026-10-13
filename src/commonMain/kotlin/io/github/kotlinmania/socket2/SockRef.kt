@@ -58,12 +58,12 @@ public class SockRef(
     public fun close(): Result<Unit> = socket.close()
 
     /**
-     * Returns the underlying [Socket]. Upstream `Deref::deref`.
+     * Returns the underlying [Socket].
      */
     public fun deref(): Socket = socket
 
     /**
-     * Formats this reference for debugging. Upstream `fmt::Debug::fmt`.
+     * Formats this reference for debugging.
      */
     public fun fmt(): String = toString()
 

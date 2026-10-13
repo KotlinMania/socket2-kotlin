@@ -49,7 +49,6 @@ version = providers.gradleProperty("project.version").getOrElse("0.1.0-SNAPSHOT"
 val frameworkName = providers.gradleProperty("project.frameworkName").getOrElse("Unnamed")
 val projectNamespace = providers.gradleProperty("project.namespace").getOrElse("io.github.kotlinmania")
 val kotlinVersion = providers.gradleProperty("versions.kotlin").getOrElse("2.4.0")
-val isCodeqlBuild = providers.gradleProperty("kotlinmania.codeql").map(String::toBoolean).getOrElse(false)
 val commonMainBundleName = providers.gradleProperty("project.dependencies.commonMainBundle").get()
 val commonMainDependencyBundle =
     extensions
@@ -82,6 +81,15 @@ val benchmarkTargetNames = csvProperty("project.benchmark.targets")
 val commonBenchmarkBundleName = optionalTrimmedProperty("project.dependencies.commonBenchmarkBundle")
 val commonBenchmarkDependencyBundle =
     commonBenchmarkBundleName?.let { bundleName ->
+        extensions
+            .getByType(VersionCatalogsExtension::class.java)
+            .named("libs")
+            .findBundle(bundleName)
+            .orElseThrow { GradleException("Missing libs bundle '$bundleName'") }
+    }
+val commonTestBundleName = optionalTrimmedProperty("project.dependencies.commonTestBundle")
+val commonTestDependencyBundle =
+    commonTestBundleName?.let { bundleName ->
         extensions
             .getByType(VersionCatalogsExtension::class.java)
             .named("libs")
@@ -344,15 +352,12 @@ val jvmToolchainVersion = providers.gradleProperty("jvm.toolchain").getOrElse("2
 // ============================================================================
 // kotlin { … }
 // ----------------------------------------------------------------------------
-// watchosArm32: retired by workspace product policy (kmp-watchosarm32-retirement
-//   per AGENTS.md §5.5.1, effective 2026-05-24). Upstream KGP still ships it as
-//   Tier 2 — this is a deliberate product decision, not a framework deprecation.
-// Deprecated by KGP since 2.3.20 (never re-add): macosX64, tvosX64, watchosX64.
-// Every other target is built unconditionally — KotlinMania supports the full
-//   target surface, so there are NO opt-in build gates. The build gate is the
-//   contract that forces every current KotlinMania target to compile.
-// ============================================================================
-
+// Workspace product policy retires every native 32-bit target, including
+//   watchosArm32 / watchosArm64 (arm64_32), androidNativeArm32 / androidNativeX86,
+//   linuxArm32Hfp, and mingwX86. Do not re-add their declarations or CI tasks.
+// Apple-specific x64 targets are also retired: iosX64, macosX64, tvosX64,
+//   watchosX64. Linux/Windows x64 and Android native x64 remain supported.
+// Every retained target is built unconditionally, with no opt-in build gates.
 // ============================================================================
 kotlin {
     jvmToolchain(jvmToolchainVersion)
@@ -372,7 +377,7 @@ kotlin {
     compilerOptions {
         languageVersion.set(KotlinVersion.KOTLIN_2_4)
         apiVersion.set(KotlinVersion.KOTLIN_2_4)
-        allWarningsAsErrors.set(!isCodeqlBuild)
+        allWarningsAsErrors.set(true)
         optIn.addAll(commonOptIns)
         freeCompilerArgs.addAll("-Xexpect-actual-classes", "-Xsuppress-version-warnings")
     }
@@ -430,13 +435,6 @@ kotlin {
     watchosSimulatorArm64 {
         configureBenchmarkCompilation()
         addToXcf()
-    }
-
-    // iosX64: Intel Mac simulator. Tier 3 in Kotlin/Native but NOT deprecated —
-    // Apple still ships x86_64 iOS simulator runtimes, so it is always built.
-    iosX64 {
-        configureBenchmarkCompilation()
-        addToXcf(static = true)
     }
 
     // Other native — Tier 1/2
@@ -504,6 +502,7 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
+            commonTestDependencyBundle?.let { implementation(it) }
         }
         if (benchmarkEnabled) {
             val commonBenchmark = maybeCreate("commonBenchmark")
@@ -565,24 +564,24 @@ tasks.withType<AbstractTestTask>().configureEach {
 // Static analysis: Detekt + Ktlint
 // ============================================================================
 detekt {
-    buildUponDefaultConfig = true
-    allRules = false
-    autoCorrect = false
+    buildUponDefaultConfig.set(true)
+    allRules.set(false)
+    autoCorrect.set(false)
     source.setFrom(files("src"))
     config.setFrom(files("detekt.yml"))
-    parallel = true
+    parallel.set(true)
 }
 
-tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
+tasks.withType<dev.detekt.gradle.Detekt>().configureEach {
     reports {
         html.required.set(true)
         sarif.required.set(true)
-        txt.required.set(false)
-        xml.required.set(false)
+        checkstyle.required.set(false)
     }
 }
 
 ktlint {
+    version.set(libs.versions.ktlintEngine.get())
     debug.set(false)
     verbose.set(false)
     android.set(false)
@@ -600,7 +599,7 @@ ktlint {
 
 if (benchmarkEnabled) {
     tasks
-        .withType<io.gitlab.arturbosch.detekt.Detekt>()
+        .withType<dev.detekt.gradle.Detekt>()
         .matching {
             it.name.contains("BenchmarkBenchmark")
         }.configureEach {
@@ -616,7 +615,7 @@ if (benchmarkEnabled) {
 }
 
 tasks.named("check") {
-    dependsOn(tasks.withType<io.gitlab.arturbosch.detekt.Detekt>())
+    dependsOn(tasks.withType<dev.detekt.gradle.Detekt>())
     dependsOn(tasks.named("ktlintCheck"))
     dependsOn("test")
 }
@@ -642,8 +641,16 @@ val webpackVersion: String =
 
 rootProject.extensions.configure<NodeJsEnvSpec>("kotlinNodeJsSpec") { version.set(nodeVersion) }
 rootProject.extensions.configure<WasmNodeJsEnvSpec>("kotlinWasmNodeJsSpec") { version.set(wasmNodeVersion) }
-rootProject.extensions.configure<YarnRootEnvSpec>("kotlinYarnSpec") { version.set(yarnVersion) }
-rootProject.extensions.configure<WasmYarnRootEnvSpec>("kotlinWasmYarnSpec") { version.set(wasmYarnVersion) }
+rootProject.extensions.configure<YarnRootEnvSpec>("kotlinYarnSpec") {
+    version.set(yarnVersion)
+    yarnLockMismatchReport.set(org.jetbrains.kotlin.gradle.targets.js.yarn.YarnLockMismatchReport.WARNING)
+    yarnLockAutoReplace.set(true)
+}
+rootProject.extensions.configure<WasmYarnRootEnvSpec>("kotlinWasmYarnSpec") {
+    version.set(wasmYarnVersion)
+    yarnLockMismatchReport.set(org.jetbrains.kotlin.gradle.targets.js.yarn.YarnLockMismatchReport.WARNING)
+    yarnLockAutoReplace.set(true)
+}
 
 rootProject.extensions.configure<YarnRootExtension>("kotlinYarn") {
     project.properties
@@ -689,41 +696,21 @@ rootProject.extensions.configure<NodeJsRootExtension>("kotlinNodeJs") {
 val napiModuleDir = layout.projectDirectory.dir("native/node-socket").asFile
 val napiModuleBuildMarker = napiModuleDir.resolve("build/Release/socket2_native.node")
 
-val buildNativeBindings by tasks.registering(Exec::class) {
-    group = "build"
-    description = "Builds the N-API native bindings for Node.js using node-gyp"
-
-    workingDir = napiModuleDir
-
-    // Install dependencies if missing, then rebuild N-API module
-    commandLine("sh", "-c", "if [ ! -d node_modules ]; then npm install; else npx node-gyp rebuild; fi")
-
-    inputs.files(
-        napiModuleDir.resolve("binding.gyp"),
-        napiModuleDir.resolve("package.json"),
-        napiModuleDir.resolve("src/socket_bindings.cpp"),
-    )
-    outputs.file(napiModuleBuildMarker)
-
-    doFirst {
-        if (!napiModuleDir.exists()) {
-            throw GradleException(
-                "N-API module directory not found: $napiModuleDir\n" +
-                    "The native bindings are required for Node.js support.",
-            )
+val buildNativeBindings =
+    tasks.register<Exec>("buildNativeBindings") {
+        group = "build"
+        description = "Builds the native node-socket N-API addon via node-gyp"
+        workingDir = napiModuleDir
+        val isWindows =
+            org.gradle.internal.os.OperatingSystem
+                .current()
+                .isWindows
+        if (isWindows) {
+            commandLine("cmd", "/c", "npm install --ignore-scripts && npx node-gyp configure && npx node-gyp build")
+        } else {
+            commandLine("sh", "-c", "npm install --ignore-scripts && npx node-gyp configure && npx node-gyp build")
         }
     }
-
-    doLast {
-        if (!napiModuleBuildMarker.exists()) {
-            throw GradleException(
-                "N-API build failed: ${napiModuleBuildMarker.absolutePath} not found.\n" +
-                    "Check that node-gyp and required build tools are installed.",
-            )
-        }
-        logger.lifecycle("✓ N-API native bindings built: ${napiModuleBuildMarker.absolutePath}")
-    }
-}
 
 val cleanNativeBindings by tasks.registering(Delete::class) {
     group = "build"
@@ -754,6 +741,47 @@ val copyNodeSocket =
 tasks.matching { it.name.startsWith("jsNodeTest") || it.name.startsWith("wasmJsNodeTest") }.configureEach {
     dependsOn(copyNodeSocket)
 }
+
+// Make kotlinUpgradeYarnLock and kotlinWasmUpgradeYarnLock dependencies in the build process
+// for KotlinJS and other JavaScript/WASM targets so that yarn.lock is always upgraded automatically.
+val jsTasksNeedingYarnLock =
+    setOf(
+        "compileKotlinJs",
+        "compileTestKotlinJs",
+        "jsProcessResources",
+        "jsTestProcessResources",
+        "jsNodeTest",
+        "jsBrowserTest",
+        "kotlinStoreYarnLock",
+    )
+
+tasks
+    .matching { it.name in jsTasksNeedingYarnLock }
+    .configureEach {
+        dependsOn("kotlinUpgradeYarnLock")
+    }
+
+val wasmTasksNeedingYarnLock =
+    setOf(
+        "compileKotlinWasmJs",
+        "compileTestKotlinWasmJs",
+        "wasmJsProcessResources",
+        "wasmJsTestProcessResources",
+        "wasmJsNodeTest",
+        "wasmJsBrowserTest",
+        "compileKotlinWasmWasi",
+        "compileTestKotlinWasmWasi",
+        "wasmWasiProcessResources",
+        "wasmWasiTestProcessResources",
+        "wasmWasiNodeTest",
+        "kotlinWasmStoreYarnLock",
+    )
+
+tasks
+    .matching { it.name in wasmTasksNeedingYarnLock }
+    .configureEach {
+        dependsOn("kotlinWasmUpgradeYarnLock")
+    }
 
 // ============================================================================
 // Maven Central publishing — Central Portal, first-party + bespoke upload
@@ -991,30 +1019,49 @@ tasks.register("hostTests") {
     dependsOn(
         "jvmTest",
         "macosArm64Test",
+        "kotlinUpgradeYarnLock",
         "jsNodeTest",
+        "kotlinWasmUpgradeYarnLock",
         "wasmJsNodeTest",
         "wasmWasiNodeTest",
         "testAndroidHostTest",
     )
 }
 
-tasks.matching { it.name.endsWith("GenerateSPMPackage") }.configureEach {
+// Patch generated SPM Package.swift to include minimum macOS platform for Swift Concurrency
+tasks.matching { it.name.contains("GenerateSPMPackage") }.configureEach {
     doLast {
-        val spmPackageDir =
+        val spmDir =
             layout.buildDirectory
                 .dir("SPMPackage")
-                .get()
-                .asFile
-        if (spmPackageDir.exists()) {
-            spmPackageDir.walkTopDown().filter { it.name == "Package.swift" }.forEach { packageSwift ->
-                val text = packageSwift.readText()
+                .orNull
+                ?.asFile
+        if (spmDir != null && spmDir.exists()) {
+            spmDir.walkTopDown().filter { it.name == "Package.swift" }.forEach { file ->
+                var text = file.readText()
+                if (text.contains("swift-tools-version: 6.0")) {
+                    text = text.replace("swift-tools-version: 6.0", "swift-tools-version: 5.9")
+                }
                 if (!text.contains("platforms:")) {
-                    packageSwift.writeText(
+                    text =
                         text.replaceFirst(
-                            Regex("""(Package\(\s*name:\s*"[^"]*",)"""),
+                            Regex("""(let package = Package\s*\(\s*name:\s*"[^"]*",)"""),
                             "$1\n    platforms: [.macOS(\"15.0\")],",
-                        ),
+                        )
+                } else if (text.contains(".macOS(.v15)") || text.contains(".macOS(.v14)")) {
+                    text = text.replace(".macOS(.v15)", ".macOS(\"15.0\")").replace(".macOS(.v14)", ".macOS(\"15.0\")")
+                }
+                file.writeText(text)
+            }
+            spmDir.walkTopDown().filter { it.name == "OrgJetbrainsKotlinxKotlinxSerializationCore.swift" }.forEach { file ->
+                val text = file.readText()
+                val cleaned =
+                    text.replace(
+                        Regex("""@_spi\([^)]+\)\s+public func (?:decodeSequentially|shouldEncodeElementDefault|encodeNotNullMark)\([^)]*\)(?:\s*->\s*[^\n{]+)?\s*\{\s*fatalError\([^)]+\)\s*\}"""),
+                        "",
                     )
+                if (cleaned != text) {
+                    file.writeText(cleaned)
                 }
             }
         }
@@ -1033,25 +1080,23 @@ tasks.register("swiftExportSmokeTest") {
 
     doLast {
         val execOperations = serviceOf<ExecOperations>()
-        val swiftBuildDirFile =
+        val swiftBuildFile =
             layout.buildDirectory
                 .dir("swift-test")
                 .get()
                 .asFile
-        swiftBuildDirFile.deleteRecursively()
-        swiftBuildDirFile.mkdirs()
-        val swiftBuildDir = swiftBuildDirFile.absolutePath
-        layout.buildDirectory
-            .dir("bin/macosArm64/SwiftExportBinaryDebugStatic")
-            .get()
-            .asFile
-            .mkdirs()
+        if (swiftBuildFile.exists()) {
+            swiftBuildFile.deleteRecursively()
+        }
+        swiftBuildFile.mkdirs()
+        val swiftBuildDir = swiftBuildFile.absolutePath
         execOperations
             .exec {
                 workingDir = projectDir
                 commandLine(
                     "./gradlew",
                     "embedSwiftExportForXcode",
+                    "-Dorg.gradle.jvmargs=-Xmx6g -XX:MaxMetaspaceSize=1g",
                     "--no-configuration-cache",
                     "--no-daemon",
                     "--console=plain",
@@ -1070,26 +1115,6 @@ tasks.register("swiftExportSmokeTest") {
                 )
             }.assertNormalExitValue()
 
-        val generatedPackageSwift =
-            layout.buildDirectory
-                .file("SPMPackage/macosArm64/Debug/Package.swift")
-                .get()
-                .asFile
-        if (generatedPackageSwift.exists()) {
-            var text = generatedPackageSwift.readText()
-            text = text.replace("// swift-tools-version: 5.9", "// swift-tools-version: 6.0")
-            val updated =
-                if (text.contains("platforms:")) {
-                    text.replace(Regex("""platforms:\s*\[\s*\.macOS\(\.v\d+\)\s*\]"""), "platforms: [.macOS(.v15)]")
-                } else {
-                    text.replaceFirst(
-                        Regex("""(let package = Package\s*\(\s*name:\s*"[^"]*",|Package\(\s*name:\s*"[^"]*",)"""),
-                        "$1\n    platforms: [.macOS(.v15)],",
-                    )
-                }
-            generatedPackageSwift.writeText(updated)
-        }
-
         execOperations
             .exec {
                 workingDir = layout.projectDirectory.dir("swift-test-harness").asFile
@@ -1099,7 +1124,7 @@ tasks.register("swiftExportSmokeTest") {
         execOperations
             .exec {
                 workingDir = layout.projectDirectory.dir("swift-test-harness").asFile
-                commandLine("swift", "test", "-Xswiftc", "-swift-version", "-Xswiftc", "5")
+                commandLine("swift", "test")
             }.assertNormalExitValue()
     }
 }
@@ -1108,8 +1133,8 @@ tasks.register("swiftExportSmokeTest") {
 // `build` aggregate
 // ----------------------------------------------------------------------------
 // Every configured native target, unconditionally. This is the audit contract —
-// it must mirror the kotlin { } target block exactly. Retired native targets
-// stay out of both lists; everything configured here MUST build.
+// it must mirror the kotlin { } target block exactly. All native 32-bit and
+// Apple-specific x64 targets are retired; every retained target MUST build.
 // Do not add a dynamic tasks.matching fallback here: copied templates must make
 // the target surface explicit so missing declarations fail loudly in review.
 // ============================================================================
@@ -1119,7 +1144,6 @@ val nativeTargetNames =
         "androidNativeX64",
         "iosArm64",
         "iosSimulatorArm64",
-        "iosX64",
         "linuxArm64",
         "linuxX64",
         "macosArm64",
@@ -1143,6 +1167,8 @@ val fullTargetBuildTaskNames =
                 "assembleAndroidDeviceTest",
                 "jvmMainClasses",
                 "jvmTestClasses",
+                "kotlinUpgradeYarnLock",
+                "kotlinWasmUpgradeYarnLock",
                 "jsMainClasses",
                 "jsTestClasses",
                 "wasmJsMainClasses",

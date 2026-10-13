@@ -7,14 +7,16 @@ package io.github.kotlinmania.socket2
  * This is a wrapper around an integer which provides a nicer API in
  * addition to an injection point for documentation.
  *
- * This type is freely interconvertible with C's `int` (`Int`) type, however, if a raw
+ * This type is freely interconvertible with C's int type, however, if a raw
  * value needs to be provided.
  */
-public typealias Protocol = SocketProtocol
+public typealias SocketProtocol = Protocol
 
-public data class SocketProtocol(
+public data class Protocol(
     public val value: Int,
 ) {
+    public fun toInt(): Int = value
+
     override fun toString(): String =
         when (value) {
             IPPROTO_ICMP -> "IPPROTO_ICMP"
@@ -30,65 +32,63 @@ public data class SocketProtocol(
         }
 
     /**
-     * Formats this protocol for debugging. Upstream `fmt::Debug::fmt`.
+     * Formats this protocol for debugging.
      */
     public fun fmt(): String = toString()
 
     public companion object {
         /**
-         * Protocol corresponding to `ICMPv4`.
+         * Converts an integer value into a [Protocol].
          */
-        public val ICMPV4: SocketProtocol = SocketProtocol(IPPROTO_ICMP)
+        public fun from(value: Int): Protocol = Protocol(value)
 
         /**
-         * Protocol corresponding to `ICMPv6`.
+         * Protocol corresponding to [IPPROTO_ICMP].
          */
-        public val ICMPV6: SocketProtocol = SocketProtocol(IPPROTO_ICMPV6)
+        public val ICMPV4: Protocol = Protocol(IPPROTO_ICMP)
 
         /**
-         * Protocol corresponding to `TCP`.
+         * Protocol corresponding to [IPPROTO_ICMPV6].
          */
-        public val TCP: SocketProtocol = SocketProtocol(IPPROTO_TCP)
+        public val ICMPV6: Protocol = Protocol(IPPROTO_ICMPV6)
 
         /**
-         * Protocol corresponding to `UDP`.
+         * Protocol corresponding to [IPPROTO_TCP].
          */
-        public val UDP: SocketProtocol = SocketProtocol(IPPROTO_UDP)
+        public val TCP: Protocol = Protocol(IPPROTO_TCP)
 
         /**
-         * Protocol corresponding to `MPTCP`.
+         * Protocol corresponding to [IPPROTO_UDP].
+         */
+        public val UDP: Protocol = Protocol(IPPROTO_UDP)
+
+        /**
+         * Protocol corresponding to [IPPROTO_MPTCP].
          * Linux-specific.
          */
-        public val MPTCP: SocketProtocol = SocketProtocol(IPPROTO_MPTCP)
+        public val MPTCP: Protocol = Protocol(IPPROTO_MPTCP)
 
         /**
-         * Protocol corresponding to `DCCP`.
-         * Linux-specific with `all` feature.
+         * Protocol corresponding to [IPPROTO_DCCP].
          */
-        public val DCCP: SocketProtocol = SocketProtocol(IPPROTO_DCCP)
+        public val DCCP: Protocol = Protocol(IPPROTO_DCCP)
 
         /**
-         * Protocol corresponding to `SCTP`.
-         * Available on FreeBSD and Linux with `all` feature.
+         * Protocol corresponding to [IPPROTO_SCTP].
          */
-        public val SCTP: SocketProtocol = SocketProtocol(IPPROTO_SCTP)
+        public val SCTP: Protocol = Protocol(IPPROTO_SCTP)
 
         /**
-         * Protocol corresponding to `UDPLITE`.
-         * Available on Android, FreeBSD, Fuchsia, Linux with `all` feature.
+         * Protocol corresponding to [IPPROTO_UDPLITE].
          */
-        public val UDPLITE: SocketProtocol = SocketProtocol(IPPROTO_UDPLITE)
+        public val UDPLITE: Protocol = Protocol(IPPROTO_UDPLITE)
 
         /**
-         * Protocol corresponding to `DIVERT`.
-         * Available on FreeBSD and OpenBSD with `all` feature.
+         * Protocol corresponding to [IPPROTO_DIVERT].
          */
-        public val DIVERT: SocketProtocol = SocketProtocol(IPPROTO_DIVERT)
+        public val DIVERT: Protocol = Protocol(IPPROTO_DIVERT)
     }
 }
-
-// Callers migrated:
-// - Protocol -> io.github.kotlinmania.socket2.SocketProtocol
 
 /**
  * Platform-specific protocol constants.

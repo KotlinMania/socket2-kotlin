@@ -46,7 +46,7 @@ public data class SockAddrStorage(
     }
 
     /**
-     * Formats this storage for debugging. Upstream `fmt::Debug::fmt`.
+     * Formats this storage for debugging.
      */
     public fun fmt(): String = toString()
 
@@ -142,7 +142,7 @@ public data class SockAddr internal constructor(
     public fun asBytes(): ByteArray = storage.padding
 
     /**
-     * Formats this address for debugging. Upstream `fmt::Debug::fmt`.
+     * Formats this address for debugging.
      */
     public fun fmt(): String = toString()
 

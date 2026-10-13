@@ -152,6 +152,8 @@ public actual class Socket internal constructor(
         }
     }
 
+    public actual fun connectTimeout(address: SockAddr, timeout: kotlin.time.Duration): Result<Unit> = connect(address)
+
     /**
      * Marks the socket as ready to accept incoming connection requests.
      *

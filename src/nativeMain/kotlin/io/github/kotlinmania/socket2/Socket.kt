@@ -22,6 +22,7 @@ import io.github.kotlinmania.socket2.sys.accept
 import io.github.kotlinmania.socket2.sys.bind
 import io.github.kotlinmania.socket2.sys.close
 import io.github.kotlinmania.socket2.sys.connect
+import io.github.kotlinmania.socket2.sys.connectTimeout
 import io.github.kotlinmania.socket2.sys.getpeername
 import io.github.kotlinmania.socket2.sys.getsockname
 import io.github.kotlinmania.socket2.sys.getsockoptInt
@@ -75,6 +76,9 @@ public actual class Socket internal constructor(
     public actual fun bind(address: SockAddr): Result<Unit> = bind(asRaw(), address)
 
     public actual fun connect(address: SockAddr): Result<Unit> = connect(asRaw(), address)
+
+    public actual fun connectTimeout(address: SockAddr, timeout: kotlin.time.Duration): Result<Unit> =
+        connectTimeout(asRaw(), address, timeout)
 
     public actual fun listen(backlog: Int): Result<Unit> = listen(asRaw(), backlog)
 

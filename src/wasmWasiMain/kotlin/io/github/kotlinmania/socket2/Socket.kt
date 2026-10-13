@@ -25,6 +25,9 @@ public actual class Socket internal constructor() {
     public actual fun connect(address: SockAddr): Result<Unit> =
         Result.failure(UnsupportedOperationException("Sockets not available in wasmWasi"))
 
+    public actual fun connectTimeout(address: SockAddr, timeout: kotlin.time.Duration): Result<Unit> =
+        Result.failure(UnsupportedOperationException("Sockets not available in wasmWasi"))
+
     public actual fun listen(backlog: Int): Result<Unit> =
         Result.failure(UnsupportedOperationException("Sockets not available in wasmWasi"))
 

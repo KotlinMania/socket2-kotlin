@@ -9,14 +9,16 @@ package io.github.kotlinmania.socket2
  * as [Type.STREAM], [Type.DGRAM], etc, are provided to avoid reaching
  * into libc for various constants.
  *
- * This type is freely interconvertible with C's `int` (`Int`) type, however, if a raw
+ * This type is freely interconvertible with C's int type, however, if a raw
  * value needs to be provided.
  */
-public typealias Type = SocketType
+public typealias SocketType = Type
 
-public data class SocketType(
+public data class Type(
     public val value: Int,
 ) {
+    public fun toInt(): Int = value
+
     override fun toString(): String =
         when (value) {
             SOCK_STREAM -> "SOCK_STREAM"
@@ -28,52 +30,56 @@ public data class SocketType(
         }
 
     /**
-     * Formats this socket type for debugging. Upstream `fmt::Debug::fmt`.
+     * Formats this socket type for debugging.
      */
     public fun fmt(): String = toString()
 
     /**
-     * Set `SOCK_NONBLOCK` on the [SocketType].
+     * Set [SOCK_NONBLOCK] on the [Type].
      */
-    public fun nonblocking(): SocketType = SocketType(value or SOCK_NONBLOCK)
+    public fun nonblocking(): Type = Type(value or SOCK_NONBLOCK)
 
     /**
-     * Set `SOCK_CLOEXEC` on the [SocketType].
+     * Set [SOCK_CLOEXEC] on the [Type].
      */
-    public fun cloexec(): SocketType = SocketType(value or SOCK_CLOEXEC)
+    public fun cloexec(): Type = Type(value or SOCK_CLOEXEC)
 
     public companion object {
         /**
-         * Type corresponding to `SOCK_STREAM`.
+         * Converts an integer value into a [Type].
+         */
+        public fun from(value: Int): Type = Type(value)
+
+        /**
+         * Type corresponding to [SOCK_STREAM].
          *
          * Used for protocols such as TCP.
          */
-        public val STREAM: SocketType = SocketType(SOCK_STREAM)
+        public val STREAM: Type = Type(SOCK_STREAM)
 
         /**
-         * Type corresponding to `SOCK_DGRAM`.
+         * Type corresponding to [SOCK_DGRAM].
          *
          * Used for protocols such as UDP.
          */
-        public val DGRAM: SocketType = SocketType(SOCK_DGRAM)
+        public val DGRAM: Type = Type(SOCK_DGRAM)
 
         /**
-         * Type corresponding to `SOCK_DCCP`.
+         * Type corresponding to [SOCK_DCCP].
          *
          * Used for the DCCP protocol.
-         * Only available on Linux with `all` feature.
          */
-        public val DCCP: SocketType = SocketType(SOCK_DCCP)
+        public val DCCP: Type = Type(SOCK_DCCP)
 
         /**
-         * Type corresponding to `SOCK_SEQPACKET`.
+         * Type corresponding to [SOCK_SEQPACKET].
          */
-        public val SEQPACKET: SocketType = SocketType(SOCK_SEQPACKET)
+        public val SEQPACKET: Type = Type(SOCK_SEQPACKET)
 
         /**
-         * Type corresponding to `SOCK_RAW`.
+         * Type corresponding to [SOCK_RAW].
          */
-        public val RAW: SocketType = SocketType(SOCK_RAW)
+        public val RAW: Type = Type(SOCK_RAW)
     }
 }
 
