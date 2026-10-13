@@ -42,14 +42,14 @@ public data class RecvFlags(
      *
      * This is used by SocketCAN to indicate a frame was sent via the
      * socket it is received on. This flag can be interpreted as a
-     * 'transmission confirmation'.
+     * "transmission confirmation".
      *
      * On Unix this corresponds to the [MSG_CONFIRM] flag.
      */
     public fun isConfirm(): Boolean = (value and MSG_CONFIRM) != 0
 
     /**
-     * Check if the don't route flag is set.
+     * Check if the do-not-route flag is set.
      *
      * This is used by SocketCAN to indicate a frame was created
      * on the local host.

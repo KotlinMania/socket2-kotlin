@@ -43,6 +43,11 @@ public data class SocketProtocol(
         public fun from(value: Int): SocketProtocol = SocketProtocol(value)
 
         /**
+         * Converts a [SocketProtocol] into its raw integer representation.
+         */
+        public fun from(protocol: SocketProtocol): Int = protocol.toInt()
+
+        /**
          * Protocol corresponding to [IPPROTO_ICMP].
          */
         public val ICMPV4: SocketProtocol = SocketProtocol(IPPROTO_ICMP)

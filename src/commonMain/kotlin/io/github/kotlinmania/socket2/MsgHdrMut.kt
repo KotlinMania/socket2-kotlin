@@ -113,5 +113,10 @@ public class MsgHdrMut private constructor(
         return result
     }
 
+    /**
+     * Formats this mutable message header for debugging.
+     */
+    public fun fmt(): String = toString()
+
     override fun toString(): String = "MsgHdrMut"
 }

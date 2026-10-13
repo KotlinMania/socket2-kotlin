@@ -106,5 +106,10 @@ public class MsgHdr private constructor(
         return result
     }
 
+    /**
+     * Formats this message header for debugging.
+     */
+    public fun fmt(): String = toString()
+
     override fun toString(): String = "MsgHdr"
 }

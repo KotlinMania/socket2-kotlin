@@ -34,5 +34,32 @@ public class MaybeUninitSlice(
      */
     public fun asSlice(): ByteArray = buffer
 
+    /**
+     * Dereferences this buffer into a byte array.
+     */
+    public fun deref(): ByteArray = buffer
+
+    /**
+     * Mutably dereferences this buffer into a byte array.
+     */
+    public fun derefMut(): ByteArray = buffer
+
+    /**
+     * Formats this slice for debugging.
+     */
+    public fun fmt(): String = toString()
+
     override fun toString(): String = "MaybeUninitSlice(size=$size)"
+
+    public companion object {
+        /**
+         * Creates a new [MaybeUninitSlice] wrapping a byte array buffer.
+         */
+        public fun new(buf: ByteArray): MaybeUninitSlice = MaybeUninitSlice(buf)
+    }
+
+    /**
+     * Target type for dereference operations.
+     */
+    public interface Target
 }
