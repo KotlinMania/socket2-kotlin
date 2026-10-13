@@ -73,6 +73,11 @@ public actual class Socket internal constructor(
          * See commonMain/Socket.kt for full documentation.
          */
         public actual fun newRaw(domain: Domain, type: SocketType, protocol: SocketProtocol?): Result<Socket> = new(domain, type, protocol)
+
+        public actual fun pair(domain: Domain, type: SocketType, protocol: SocketProtocol?): Result<Pair<Socket, Socket>> = pairRaw(domain, type, protocol)
+
+        public actual fun pairRaw(domain: Domain, type: SocketType, protocol: SocketProtocol?): Result<Pair<Socket, Socket>> =
+            Result.failure(UnsupportedOperationException("pair() not supported on JS"))
     }
 
     /**
@@ -262,6 +267,80 @@ public actual class Socket internal constructor(
             Result.failure(IOException("send() failed: ${e.message}"))
         }
     }
+
+    public actual fun localAddr(): Result<SockAddr> =
+        Result.failure(UnsupportedOperationException("localAddr() not supported on JS"))
+
+    public actual fun peerAddr(): Result<SockAddr> =
+        Result.failure(UnsupportedOperationException("peerAddr() not supported on JS"))
+
+    public actual fun type(): Result<SocketType> =
+        Result.failure(UnsupportedOperationException("type() not supported on JS"))
+
+    public actual fun tryClone(): Result<Socket> =
+        Result.failure(UnsupportedOperationException("tryClone() not supported on JS"))
+
+    public actual fun setNonblocking(nonblocking: Boolean): Result<Unit> =
+        Result.failure(UnsupportedOperationException("setNonblocking() not supported on JS"))
+
+    public actual fun nonblocking(): Result<Boolean> =
+        Result.failure(UnsupportedOperationException("nonblocking() not supported on JS"))
+
+    public actual fun recvFrom(buffer: ByteArray, flags: Int): Result<Pair<Int, SockAddr>> =
+        Result.failure(UnsupportedOperationException("recvFrom() not supported on JS"))
+
+    public actual fun sendTo(buffer: ByteArray, flags: Int, address: SockAddr): Result<Int> =
+        Result.failure(UnsupportedOperationException("sendTo() not supported on JS"))
+
+    public actual fun takeError(): Result<Int?> = Result.success(null)
+
+    public actual fun reuseAddress(): Result<Boolean> =
+        Result.failure(UnsupportedOperationException("reuseAddress() not supported on JS"))
+
+    public actual fun setReuseAddress(reuse: Boolean): Result<Unit> =
+        Result.failure(UnsupportedOperationException("setReuseAddress() not supported on JS"))
+
+    public actual fun reusePort(): Result<Boolean> =
+        Result.failure(UnsupportedOperationException("reusePort() not supported on JS"))
+
+    public actual fun setReusePort(reuse: Boolean): Result<Unit> =
+        Result.failure(UnsupportedOperationException("setReusePort() not supported on JS"))
+
+    public actual fun broadcast(): Result<Boolean> =
+        Result.failure(UnsupportedOperationException("broadcast() not supported on JS"))
+
+    public actual fun setBroadcast(broadcast: Boolean): Result<Unit> =
+        Result.failure(UnsupportedOperationException("setBroadcast() not supported on JS"))
+
+    public actual fun keepalive(): Result<Boolean> =
+        Result.failure(UnsupportedOperationException("keepalive() not supported on JS"))
+
+    public actual fun setKeepalive(keepalive: Boolean): Result<Unit> =
+        Result.failure(UnsupportedOperationException("setKeepalive() not supported on JS"))
+
+    public actual fun sendBufferSize(): Result<Int> =
+        Result.failure(UnsupportedOperationException("sendBufferSize() not supported on JS"))
+
+    public actual fun setSendBufferSize(size: Int): Result<Unit> =
+        Result.failure(UnsupportedOperationException("setSendBufferSize() not supported on JS"))
+
+    public actual fun recvBufferSize(): Result<Int> =
+        Result.failure(UnsupportedOperationException("recvBufferSize() not supported on JS"))
+
+    public actual fun setRecvBufferSize(size: Int): Result<Unit> =
+        Result.failure(UnsupportedOperationException("setRecvBufferSize() not supported on JS"))
+
+    public actual fun nodelay(): Result<Boolean> =
+        Result.failure(UnsupportedOperationException("nodelay() not supported on JS"))
+
+    public actual fun setNodelay(nodelay: Boolean): Result<Unit> =
+        Result.failure(UnsupportedOperationException("setNodelay() not supported on JS"))
+
+    public actual fun ttl(): Result<UInt> =
+        Result.failure(UnsupportedOperationException("ttl() not supported on JS"))
+
+    public actual fun setTtl(ttl: UInt): Result<Unit> =
+        Result.failure(UnsupportedOperationException("setTtl() not supported on JS"))
 
     /**
      * Closes this socket.
