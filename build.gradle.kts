@@ -78,6 +78,31 @@ fun optionalTrimmedProperty(name: String): String? =
 val enabledFeatureNames = csvProperty("project.features")
 val benchmarkEnabled = "benchmark" in enabledFeatureNames
 val benchmarkTargetNames = csvProperty("project.benchmark.targets")
+
+// ============================================================================
+// Native C bindings — per-channel opt-in gates (gradle.properties
+// `project.ffi.{native,jvm,napi,name}`). All default off.
+// Transliterated from libc-kotlin's build.gradle.kts; generalized so tasks,
+// file paths, and npm package names all derive from project.ffi.name.
+// ============================================================================
+fun boolProperty(name: String, default: Boolean = false): Boolean =
+    providers.gradleProperty(name).map { it.trim().lowercase() == "true" }.getOrElse(default)
+
+val nativeFfiEnabled = boolProperty("project.ffi.native")
+val jvmFfiEnabled = boolProperty("project.ffi.jvm")
+val napiFfiEnabled = boolProperty("project.ffi.napi")
+
+val ffiNameRaw = providers.gradleProperty("project.ffi.name").getOrElse("Ffi").trim()
+val ffiName = ffiNameRaw.replaceFirstChar { it.uppercase() } // Libc, Png, ...
+val ffiNameLower = ffiNameRaw.lowercase() // libc, png, ...
+val ffiDefFile = "src/nativeInterop/cinterop/$ffiName.def"
+val ffiWrapperBase = "${ffiNameLower}_wrapper" // libc_wrapper
+val ffiNapiDir = "native/node-$ffiNameLower" // native/node-libc
+val ffiNpmPackage = "@kotlinmania/$ffiNameLower-native-bindings" // @kotlinmania/libc-native-bindings
+
+if (nativeFfiEnabled || jvmFfiEnabled || napiFfiEnabled) {
+    println("FFI channels enabled: native=$nativeFfiEnabled jvm=$jvmFfiEnabled napi=$napiFfiEnabled name=$ffiName")
+}
 val commonBenchmarkBundleName = optionalTrimmedProperty("project.dependencies.commonBenchmarkBundle")
 val commonBenchmarkDependencyBundle =
     commonBenchmarkBundleName?.let { bundleName ->
@@ -661,11 +686,11 @@ rootProject.extensions.configure<WasmYarnRootEnvSpec>("kotlinWasmYarnSpec") {
 }
 
 rootProject.extensions.configure<YarnRootExtension>("kotlinYarn") {
-    project.properties
-        .filterKeys { it.startsWith("yarn.resolution.") }
-        .forEach { (key, value) ->
+    providers
+        .gradlePropertiesPrefixedBy("yarn.resolution.")
+        .getOrElse(emptyMap())
+        .forEach { (key, ver) ->
             val pkg = key.removePrefix("yarn.resolution.")
-            val ver = value as? String ?: return@forEach
             resolution(pkg, ver)
             resolution("**/$pkg", ver)
         }
