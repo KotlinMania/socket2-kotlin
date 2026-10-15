@@ -16,5 +16,5 @@ dependencyResolutionManagement {
 }
 
 // rootProject.name only — no composite-build includes.
-// socket2-kotlin consumes published io.github.kotlinmania:libc-kotlin:0.1.3 from Maven Central.
+// socket2-kotlin consumes libc-kotlin from Maven Central at the catalog version.
 rootProject.name = "socket2-kotlin"
