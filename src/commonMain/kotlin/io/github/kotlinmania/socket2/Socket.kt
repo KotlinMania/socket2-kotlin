@@ -206,12 +206,12 @@ public class Socket internal constructor(
         msg: MsgHdrMut,
         flags: Int = 0,
     ): Result<Int> {
-        val hdr = msg.consume()
+        val bufs = msg.consumeBuffers()
         var total = 0
-        for (iov in hdr.msgIov) {
-            val n = recvWithFlags(iov.iovBase, flags).getOrElse { return Result.failure(it) }
+        for (slice in bufs) {
+            val n = recvWithFlags(slice.buffer, flags).getOrElse { return Result.failure(it) }
             total += n
-            if (n < iov.iovBase.size) break
+            if (n < slice.size) break
         }
         return Result.success(total)
     }
@@ -305,12 +305,12 @@ public class Socket internal constructor(
         msg: MsgHdr,
         flags: Int = 0,
     ): Result<Int> {
-        val hdr = msg.consume()
+        val bufs = msg.consumeBuffers()
         var total = 0
-        for (iov in hdr.msgIov) {
-            val n = sendWithFlags(iov.iovBase, flags).getOrElse { return Result.failure(it) }
+        for (buf in bufs) {
+            val n = sendWithFlags(buf, flags).getOrElse { return Result.failure(it) }
             total += n
-            if (n < iov.iovBase.size) break
+            if (n < buf.size) break
         }
         return Result.success(total)
     }

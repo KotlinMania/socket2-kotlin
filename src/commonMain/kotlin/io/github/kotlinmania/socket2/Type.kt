@@ -1,4 +1,3 @@
-// port-lint: source lib.rs
 package io.github.kotlinmania.socket2
 
 import io.github.kotlinmania.libc.fuchsia.SOCK_DCCP
@@ -9,19 +8,6 @@ import io.github.kotlinmania.libc.unix.bsd.apple.SOCK_RDM
 import io.github.kotlinmania.libc.unix.bsd.apple.SOCK_SEQPACKET
 import io.github.kotlinmania.libc.unix.bsd.apple.SOCK_STREAM
 import io.github.kotlinmania.libc.unix.solarish.SOCK_CLOEXEC
-
-/**
- * Specification of communication semantics on a socket.
- *
- * This is a wrapper around an integer which provides a nicer API in
- * addition to an injection point for documentation. Convenience constants such
- * as [Type.STREAM], [Type.DGRAM], etc, are provided to avoid reaching
- * into libc for various constants.
- *
- * This type is freely interconvertible with C's int type, however, if a raw
- * value needs to be provided.
- */
-public typealias Type = SocketType
 
 public data class SocketType(
     public val value: Int,

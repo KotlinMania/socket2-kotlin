@@ -1,8 +1,8 @@
-// port-lint: source lib.rs
 package io.github.kotlinmania.socket2
 
-import io.github.kotlinmania.libc.musl.sys.Iovec
-import io.github.kotlinmania.libc.musl.sys.Msghdr
+import io.github.kotlinmania.libc.COpaquePointer
+import io.github.kotlinmania.libc.new.musl.sys.Msghdr
+import io.github.kotlinmania.libc.unix.Iovec
 
 /**
  * Configuration of a `recvmsg(2)` system call.
@@ -14,6 +14,7 @@ import io.github.kotlinmania.libc.musl.sys.Msghdr
  */
 public class MsgHdrMut private constructor(
     private var inner: Msghdr?,
+    private var buffers: List<MaybeUninitSlice> = emptyList(),
 ) {
     public companion object {
         /**
@@ -24,10 +25,10 @@ public class MsgHdrMut private constructor(
                 Msghdr(
                     msgName = null,
                     msgNamelen = 0u,
-                    msgIov = emptyList(),
+                    msgIov = null,
                     msgIovlen = 0,
                     msgControl = null,
-                    msgControlen = 0u,
+                    msgControllen = 0u,
                     msgFlags = 0,
                 ),
             )
@@ -40,9 +41,10 @@ public class MsgHdrMut private constructor(
      */
     public fun withAddr(addr: SockAddr): MsgHdrMut {
         val current = inner ?: throw IllegalStateException("MsgHdrMut already consumed")
+        val namePtr = addr.asBytes().contentHashCode().toLong()
         inner =
             current.copy(
-                msgName = addr.asStorage().storage.padding,
+                msgName = COpaquePointer(namePtr),
                 msgNamelen = addr.len(),
             )
         return this
@@ -55,17 +57,18 @@ public class MsgHdrMut private constructor(
      */
     public fun withBuffers(bufs: List<MaybeUninitSlice>): MsgHdrMut {
         val current = inner ?: throw IllegalStateException("MsgHdrMut already consumed")
-        val iovecs =
-            bufs.map { buf ->
+        val firstIov =
+            bufs.firstOrNull()?.let { buf ->
                 Iovec(
-                    iovBase = buf.buffer,
+                    iovBase = COpaquePointer(buf.buffer.contentHashCode().toLong()),
                     iovLen = buf.size.toULong(),
                 )
             }
+        buffers = bufs
         inner =
             current.copy(
-                msgIov = iovecs,
-                msgIovlen = iovecs.size,
+                msgIov = firstIov,
+                msgIovlen = bufs.size,
             )
         return this
     }
@@ -79,8 +82,8 @@ public class MsgHdrMut private constructor(
         val current = inner ?: throw IllegalStateException("MsgHdrMut already consumed")
         inner =
             current.copy(
-                msgControl = buf,
-                msgControlen = buf.size.toUInt(),
+                msgControl = COpaquePointer(buf.contentHashCode().toLong()),
+                msgControllen = buf.size.toUInt(),
             )
         return this
     }
@@ -100,17 +103,16 @@ public class MsgHdrMut private constructor(
      */
     public fun controlLen(): Int {
         val current = inner ?: throw IllegalStateException("MsgHdrMut already consumed")
-        return current.msgControlen.toInt()
+        return current.msgControllen.toInt()
     }
 
     /**
-     * Get the internal message header structure.
-     * This consumes the MsgHdrMut.
+     * Consumes the [MsgHdrMut] and returns the configured buffers.
      */
-    internal fun consume(): Msghdr {
-        val result = inner ?: throw IllegalStateException("MsgHdrMut already consumed")
+    internal fun consumeBuffers(): List<MaybeUninitSlice> {
+        checkNotNull(inner) { "MsgHdrMut already consumed" }
         inner = null
-        return result
+        return buffers
     }
 
     /**

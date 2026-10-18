@@ -1,8 +1,8 @@
-// port-lint: source lib.rs
 package io.github.kotlinmania.socket2
 
-import io.github.kotlinmania.libc.musl.sys.Iovec
-import io.github.kotlinmania.libc.musl.sys.Msghdr
+import io.github.kotlinmania.libc.COpaquePointer
+import io.github.kotlinmania.libc.new.musl.sys.Msghdr
+import io.github.kotlinmania.libc.unix.Iovec
 
 /**
  * Configuration of a `sendmsg(2)` system call.
@@ -14,6 +14,7 @@ import io.github.kotlinmania.libc.musl.sys.Msghdr
  */
 public class MsgHdr private constructor(
     private var inner: Msghdr?,
+    private var buffers: List<ByteArray> = emptyList(),
 ) {
     public companion object {
         /**
@@ -24,10 +25,10 @@ public class MsgHdr private constructor(
                 Msghdr(
                     msgName = null,
                     msgNamelen = 0u,
-                    msgIov = emptyList(),
+                    msgIov = null,
                     msgIovlen = 0,
                     msgControl = null,
-                    msgControlen = 0u,
+                    msgControllen = 0u,
                     msgFlags = 0,
                 ),
             )
@@ -40,9 +41,10 @@ public class MsgHdr private constructor(
      */
     public fun withAddr(addr: SockAddr): MsgHdr {
         val current = inner ?: throw IllegalStateException("MsgHdr already consumed")
+        val namePtr = addr.asBytes().contentHashCode().toLong()
         inner =
             current.copy(
-                msgName = addr.asStorage().storage.padding,
+                msgName = COpaquePointer(namePtr),
                 msgNamelen = addr.len(),
             )
         return this
@@ -55,17 +57,18 @@ public class MsgHdr private constructor(
      */
     public fun withBuffers(bufs: List<ByteArray>): MsgHdr {
         val current = inner ?: throw IllegalStateException("MsgHdr already consumed")
-        val iovecs =
-            bufs.map { buf ->
+        val firstIov =
+            bufs.firstOrNull()?.let { buf ->
                 Iovec(
-                    iovBase = buf,
+                    iovBase = COpaquePointer(buf.contentHashCode().toLong()),
                     iovLen = buf.size.toULong(),
                 )
             }
+        buffers = bufs
         inner =
             current.copy(
-                msgIov = iovecs,
-                msgIovlen = iovecs.size,
+                msgIov = firstIov,
+                msgIovlen = bufs.size,
             )
         return this
     }
@@ -79,8 +82,8 @@ public class MsgHdr private constructor(
         val current = inner ?: throw IllegalStateException("MsgHdr already consumed")
         inner =
             current.copy(
-                msgControl = buf,
-                msgControlen = buf.size.toUInt(),
+                msgControl = COpaquePointer(buf.contentHashCode().toLong()),
+                msgControllen = buf.size.toUInt(),
             )
         return this
     }
@@ -97,13 +100,12 @@ public class MsgHdr private constructor(
     }
 
     /**
-     * Get the internal message header structure.
-     * This consumes the MsgHdr.
+     * Consumes the [MsgHdr] and returns the configured buffers.
      */
-    internal fun consume(): Msghdr {
-        val result = inner ?: throw IllegalStateException("MsgHdr already consumed")
+    internal fun consumeBuffers(): List<ByteArray> {
+        checkNotNull(inner) { "MsgHdr already consumed" }
         inner = null
-        return result
+        return buffers
     }
 
     /**

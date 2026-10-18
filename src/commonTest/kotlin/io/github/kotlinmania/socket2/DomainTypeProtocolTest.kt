@@ -1,4 +1,3 @@
-// port-lint: tests lib.rs
 package io.github.kotlinmania.socket2
 
 import kotlin.test.Test
@@ -26,10 +25,10 @@ class DomainTypeProtocolTest {
 
     @Test
     fun testTypeCreation() {
-        val stream = Type.STREAM
-        val dgram = Type.DGRAM
-        val seqpacket = Type.SEQPACKET
-        val raw = Type.RAW
+        val stream = io.github.kotlinmania.socket2.SocketType.STREAM
+        val dgram = io.github.kotlinmania.socket2.SocketType.DGRAM
+        val seqpacket = io.github.kotlinmania.socket2.SocketType.SEQPACKET
+        val raw = io.github.kotlinmania.socket2.SocketType.RAW
         assertNotNull(stream)
         assertNotNull(dgram)
         assertNotNull(seqpacket)
@@ -42,10 +41,10 @@ class DomainTypeProtocolTest {
 
     @Test
     fun testProtocolCreation() {
-        val tcp = Protocol.TCP
-        val udp = Protocol.UDP
-        val icmp4 = Protocol.ICMPV4
-        val icmp6 = Protocol.ICMPV6
+        val tcp = io.github.kotlinmania.socket2.SocketProtocol.TCP
+        val udp = io.github.kotlinmania.socket2.SocketProtocol.UDP
+        val icmp4 = io.github.kotlinmania.socket2.SocketProtocol.ICMPV4
+        val icmp6 = io.github.kotlinmania.socket2.SocketProtocol.ICMPV6
         assertNotNull(tcp)
         assertNotNull(udp)
         assertNotNull(icmp4)

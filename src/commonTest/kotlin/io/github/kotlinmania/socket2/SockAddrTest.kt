@@ -1,10 +1,10 @@
 // port-lint: tests sockaddr.rs
 package io.github.kotlinmania.socket2
 
-import io.github.kotlinmania.libc.SockaddrStorage
 import io.github.kotlinmania.libc.unix.bsd.apple.AF_INET
 import io.github.kotlinmania.libc.unix.bsd.apple.AF_INET6
 import io.github.kotlinmania.libc.unix.bsd.apple.AF_UNIX
+import io.github.kotlinmania.libc.unix.linuxlike.SockaddrStorage
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -23,7 +23,7 @@ class SockAddrTest {
             SockAddrStorage(
                 SockaddrStorage(
                     ssFamily = AF_INET.toUShort(),
-                    padding = ByteArray(126),
+                    ssPad2 = ByteArray(118),
                 ),
             )
         val addr = SockAddr.new(storage, 16u)
@@ -47,7 +47,7 @@ class SockAddrTest {
             SockAddrStorage(
                 SockaddrStorage(
                     ssFamily = AF_INET6.toUShort(),
-                    padding = ByteArray(126),
+                    ssPad2 = ByteArray(118),
                 ),
             )
         val addr = SockAddr.new(storage, 28u)
@@ -65,7 +65,7 @@ class SockAddrTest {
             SockAddrStorage(
                 SockaddrStorage(
                     ssFamily = AF_UNIX.toUShort(),
-                    padding = ByteArray(126),
+                    ssPad2 = ByteArray(118),
                 ),
             )
         val addr = SockAddr.new(storage, 110u)
@@ -216,7 +216,7 @@ class SockAddrTest {
     @Test
     fun testViewAsAndAsPtr() {
         val storage = SockAddrStorage.zeroed()
-        val viewed = storage.viewAs<io.github.kotlinmania.libc.SockaddrStorage>()
+        val viewed = storage.viewAs<SockaddrStorage>()
         assertEquals(storage.storage, viewed)
 
         val addr = SockAddr.from(SocketAddr.V4("127.0.0.1", 8080))

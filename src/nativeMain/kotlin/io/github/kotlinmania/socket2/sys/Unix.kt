@@ -1,10 +1,10 @@
 // port-lint: source sys/unix.rs
 package io.github.kotlinmania.socket2.sys
 
-import io.github.kotlinmania.libc.SockaddrStorage
 import io.github.kotlinmania.libc.unix.bsd.apple.SHUT_RD
 import io.github.kotlinmania.libc.unix.bsd.apple.SHUT_RDWR
 import io.github.kotlinmania.libc.unix.bsd.apple.SHUT_WR
+import io.github.kotlinmania.libc.unix.linuxlike.SockaddrStorage
 import io.github.kotlinmania.socket2.Domain
 import io.github.kotlinmania.socket2.Shutdown
 import io.github.kotlinmania.socket2.SockAddr
@@ -82,24 +82,19 @@ internal value class RawSocket(
 )
 
 /**
- * Owned file descriptor corresponding to Rust's std::os::fd::OwnedFd.
+ * Safely constructs a [SysSocket] from a raw socket descriptor.
  */
-internal typealias OwnedFd = RawSocket
-
-/**
- * Safely constructs a [Socket] from a raw socket descriptor.
- */
-internal fun socketFromRaw(socket: RawSocket): Socket = SysSocket(socket)
+internal fun socketFromRaw(socket: RawSocket): SysSocket = SysSocket(socket)
 
 /**
  * Returns the raw socket descriptor for [socket].
  */
-internal fun socketAsRaw(socket: Socket): RawSocket = socket.rawSocket
+internal fun socketAsRaw(socket: SysSocket): RawSocket = socket.rawSocket
 
 /**
  * Consumes the [socket] and returns its raw socket descriptor.
  */
-internal fun socketIntoRaw(socket: Socket): RawSocket = socket.rawSocket
+internal fun socketIntoRaw(socket: SysSocket): RawSocket = socket.rawSocket
 
 internal actual class SysSocket internal constructor(
     internal val rawSocket: RawSocket,
@@ -279,7 +274,7 @@ internal val IP_TTL_VAL: Int get() = socket2OptIpTtl()
 @OptIn(ExperimentalForeignApi::class)
 internal fun extractSockAddr(storage: CPointer<Socket2AddrStorage>, len: UInt): SockAddr {
     val family = socket2AddrStorageGetFamily(storage)
-    val padding = ByteArray(126)
+    val padding = ByteArray(118)
     val paddingLen = padding.size.toUInt()
     padding.usePinned { pinned ->
         val paddingPtr = pinned.addressOf(0).reinterpret<UByteVar>()
@@ -288,7 +283,7 @@ internal fun extractSockAddr(storage: CPointer<Socket2AddrStorage>, len: UInt): 
     val kotlinStorage =
         SockaddrStorage(
             ssFamily = family,
-            padding = padding,
+            ssPad2 = padding,
         )
     return SockAddr.new(SockAddrStorage(kotlinStorage), len)
 }
@@ -312,7 +307,7 @@ internal fun bind(fd: RawSocket, addr: SockAddr): Result<Unit> {
     val storage = socket2AddrStorageNew() ?: return Result.failure(IOException("Failed to allocate address storage"))
     try {
         socket2AddrStorageSetFamily(storage, addr.storage.ssFamily)
-        val padding = addr.storage.padding
+        val padding = addr.storage.ssPad2
         val paddingLen = padding.size.toUInt()
         padding.usePinned { pinned ->
             val paddingPtr = pinned.addressOf(0).reinterpret<UByteVar>()
@@ -336,7 +331,7 @@ internal fun connect(fd: RawSocket, addr: SockAddr): Result<Unit> {
     val storage = socket2AddrStorageNew() ?: return Result.failure(IOException("Failed to allocate address storage"))
     try {
         socket2AddrStorageSetFamily(storage, addr.storage.ssFamily)
-        val padding = addr.storage.padding
+        val padding = addr.storage.ssPad2
         val paddingLen = padding.size.toUInt()
         padding.usePinned { pinned ->
             val paddingPtr = pinned.addressOf(0).reinterpret<UByteVar>()
@@ -618,7 +613,7 @@ internal fun sendto(fd: RawSocket, buffer: ByteArray, flags: Int, addr: SockAddr
     val storage = socket2AddrStorageNew() ?: return Result.failure(IOException("Failed to allocate address storage"))
     try {
         socket2AddrStorageSetFamily(storage, addr.storage.ssFamily)
-        val padding = addr.storage.padding
+        val padding = addr.storage.ssPad2
         val paddingLen = padding.size.toUInt()
         padding.usePinned { pinned ->
             val paddingPtr = pinned.addressOf(0).reinterpret<UByteVar>()
