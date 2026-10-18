@@ -50,8 +50,8 @@ class SockRefTest {
     }
 
     @Test
-    fun testSockRefFromRawAndTargetTypealias() {
-        val target: Target? = Socket.new(Domain.IPV4, SocketType.STREAM, null).getOrNull()
+    fun testSockRefFromRaw() {
+        val target: Socket? = Socket.new(Domain.IPV4, SocketType.STREAM, null).getOrNull()
         if (target == null) return
         val raw = target.asRaw()
         val sockRef = SockRef.from(raw)

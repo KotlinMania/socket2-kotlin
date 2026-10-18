@@ -2,11 +2,6 @@
 package io.github.kotlinmania.socket2
 
 /**
- * Target type for dereference operations.
- */
-public typealias Target = Socket
-
-/**
  * A reference to a [Socket] that can be used to configure socket types other
  * than the [Socket] type itself.
  *
@@ -84,7 +79,7 @@ public class SockRef(
     /**
      * Returns the underlying [Socket].
      */
-    public fun deref(): Target = socket
+    public fun deref(): Socket = socket
 
     /**
      * Formats this reference for debugging.

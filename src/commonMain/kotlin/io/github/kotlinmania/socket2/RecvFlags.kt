@@ -1,4 +1,3 @@
-// port-lint: source lib.rs
 package io.github.kotlinmania.socket2
 
 import io.github.kotlinmania.libc.unix.bsd.apple.MSG_DONTROUTE

@@ -1,20 +1,10 @@
 // port-lint: source sockaddr.rs
 package io.github.kotlinmania.socket2
 
-import io.github.kotlinmania.libc.SockaddrStorage
 import io.github.kotlinmania.libc.unix.bsd.apple.AF_INET
 import io.github.kotlinmania.libc.unix.bsd.apple.AF_INET6
 import io.github.kotlinmania.libc.unix.bsd.apple.AF_UNIX
-
-/**
- * The integer type used with `getsockname` on this platform.
- */
-public typealias SocklenT = LibcSocklenT
-
-/**
- * The integer type for the address family on this platform.
- */
-public typealias SaFamilyT = LibcSaFamilyT
+import io.github.kotlinmania.libc.unix.linuxlike.SockaddrStorage
 
 /**
  * Kotlin version of the [SockAddrStorage] type.
@@ -33,7 +23,7 @@ public data class SockAddrStorage(
             SockAddrStorage(
                 SockaddrStorage(
                     ssFamily = 0u,
-                    padding = ByteArray(126), // Platform-specific size
+                    ssPad2 = ByteArray(118),
                 ),
             )
     }
@@ -41,8 +31,8 @@ public data class SockAddrStorage(
     /**
      * Returns the size of this storage.
      */
-    public fun sizeOf(): SocklenT {
-        // Total storage size: 2 bytes for family + 126 bytes padding = 128 bytes
+    public fun sizeOf(): UInt {
+        // Total storage size: 2 bytes for family + 118 bytes ssPad2 + 8 bytes ssAlign = 128 bytes
         return 128u
     }
 
@@ -64,13 +54,13 @@ public data class SockAddrStorage(
         if (other == null || this::class != other::class) return false
         other as SockAddrStorage
         if (storage.ssFamily != other.storage.ssFamily) return false
-        if (!storage.padding.contentEquals(other.storage.padding)) return false
+        if (!storage.ssPad2.contentEquals(other.storage.ssPad2)) return false
         return true
     }
 
     override fun hashCode(): Int {
         var result = storage.ssFamily.hashCode()
-        result = 31 * result + storage.padding.contentHashCode()
+        result = 31 * result + storage.ssPad2.contentHashCode()
         return result
     }
 }
@@ -84,7 +74,7 @@ public data class SockAddrStorage(
 @ConsistentCopyVisibility
 public data class SockAddr internal constructor(
     internal val storage: SockaddrStorage,
-    private val length: SocklenT,
+    private val length: UInt,
 ) {
     public companion object {
         /**
@@ -97,7 +87,7 @@ public data class SockAddr internal constructor(
          * the storage must be initialized appropriately for IPv4, setting the content
          * and length correctly.
          */
-        public fun new(storage: SockAddrStorage, len: SocklenT): SockAddr = SockAddr(storage.storage, len)
+        public fun new(storage: SockAddrStorage, len: UInt): SockAddr = SockAddr(storage.storage, len)
 
         /**
          * Constructs a `SockAddr` with the family `AF_UNIX` and the provided path.
@@ -124,7 +114,7 @@ public data class SockAddr internal constructor(
          * to an initializer function.
          */
         public fun <T> tryInit(
-            init: (SockAddrStorage, (SocklenT) -> Unit) -> Result<T>,
+            init: (SockAddrStorage, (UInt) -> Unit) -> Result<T>,
         ): Result<Pair<T, SockAddr>> {
             val storage = SockAddrStorage.zeroed()
             var len = storage.sizeOf()
@@ -137,7 +127,7 @@ public data class SockAddr internal constructor(
     /**
      * Returns this address's family.
      */
-    public fun family(): SaFamilyT = storage.ssFamily
+    public fun family(): UShort = storage.ssFamily
 
     /**
      * Returns this address's [Domain].
@@ -147,12 +137,12 @@ public data class SockAddr internal constructor(
     /**
      * Returns the size of this address in bytes.
      */
-    public fun len(): SocklenT = length
+    public fun len(): UInt = length
 
     /**
      * Set the length of the address.
      */
-    public fun setLength(length: SocklenT): SockAddr = SockAddr(storage, length)
+    public fun setLength(length: UInt): SockAddr = SockAddr(storage, length)
 
     /**
      * Returns the address as the storage.
@@ -167,7 +157,7 @@ public data class SockAddr internal constructor(
     /**
      * Returns the raw initialized bytes of the address. Upstream `asBytes`.
      */
-    public fun asBytes(): ByteArray = storage.padding
+    public fun asBytes(): ByteArray = storage.ssPad2
 
     /**
      * Formats this address for debugging.
@@ -272,13 +262,13 @@ public data class SockAddr internal constructor(
         other as SockAddr
         if (length != other.length) return false
         if (storage.ssFamily != other.storage.ssFamily) return false
-        if (!storage.padding.contentEquals(other.storage.padding)) return false
+        if (!storage.ssPad2.contentEquals(other.storage.ssPad2)) return false
         return true
     }
 
     override fun hashCode(): Int {
         var result = storage.ssFamily.hashCode()
-        result = 31 * result + storage.padding.contentHashCode()
+        result = 31 * result + storage.ssPad2.contentHashCode()
         result = 31 * result + length.hashCode()
         return result
     }
@@ -349,7 +339,7 @@ public fun sockAddrUnix(path: String): Result<SockAddr> {
     val storage =
         SockaddrStorage(
             ssFamily = AF_UNIX.toUShort(),
-            padding = sunPath + ByteArray(126 - 108),
+            ssPad2 = sunPath + ByteArray(118 - 108),
         )
 
     val length =
@@ -367,7 +357,7 @@ public fun sockAddrUnix(path: String): Result<SockAddr> {
 internal fun SockAddr.asSocketPlatform(): SocketAddr? =
     when {
         isIpv4() -> {
-            val padding = storage.padding
+            val padding = storage.ssPad2
             if (padding.size < 6) {
                 null
             } else {
@@ -385,7 +375,7 @@ internal fun SockAddr.asSocketPlatform(): SocketAddr? =
         }
 
         isIpv6() -> {
-            val padding = storage.padding
+            val padding = storage.ssPad2
             if (padding.size < 22) {
                 null
             } else {
@@ -442,7 +432,7 @@ public fun SocketAddr.toSockAddr(): SockAddr =
             require(parts.size == 4) { "Invalid IPv4 address: $address" }
             val bytes = parts.map { it.toInt().also { v -> require(v in 0..255) } }
 
-            val padding = ByteArray(126)
+            val padding = ByteArray(118)
             padding[0] = (port shr 8).toByte()
             padding[1] = port.toByte()
             padding[2] = bytes[0].toByte()
@@ -453,7 +443,7 @@ public fun SocketAddr.toSockAddr(): SockAddr =
             val storage =
                 SockaddrStorage(
                     ssFamily = AF_INET.toUShort(),
-                    padding = padding,
+                    ssPad2 = padding,
                 )
 
             val length = 16u
@@ -470,7 +460,7 @@ public fun SocketAddr.toSockAddr(): SockAddr =
                 addrBytes[i * 2 + 1] = word.toByte()
             }
 
-            val padding = ByteArray(126)
+            val padding = ByteArray(118)
             padding[0] = (port shr 8).toByte()
             padding[1] = port.toByte()
             padding[2] = (flow shr 24).toByte()
@@ -486,7 +476,7 @@ public fun SocketAddr.toSockAddr(): SockAddr =
             val storage =
                 SockaddrStorage(
                     ssFamily = AF_INET6.toUShort(),
-                    padding = padding,
+                    ssPad2 = padding,
                 )
 
             val length = 28u
