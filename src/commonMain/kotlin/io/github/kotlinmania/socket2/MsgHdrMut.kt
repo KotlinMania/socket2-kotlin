@@ -41,9 +41,10 @@ public class MsgHdrMut private constructor(
      */
     public fun withAddr(addr: SockAddr): MsgHdrMut {
         val current = inner ?: throw IllegalStateException("MsgHdrMut already consumed")
+        val namePtr = addr.asBytes().contentHashCode().toLong()
         inner =
             current.copy(
-                msgName = COpaquePointer(addr.asStorage().storage.ssPad2.contentHashCode().toLong()),
+                msgName = COpaquePointer(namePtr),
                 msgNamelen = addr.len(),
             )
         return this
