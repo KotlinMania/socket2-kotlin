@@ -42,7 +42,7 @@ Add `socket2-kotlin` to your project's `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("io.github.kotlinmania:socket2-kotlin:0.1.3")
+    implementation("io.github.kotlinmania:socket2-kotlin:0.2.0")
 }
 ```
 
@@ -52,7 +52,7 @@ Or in a multiplatform project:
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation("io.github.kotlinmania:socket2-kotlin:0.1.3")
+            implementation("io.github.kotlinmania:socket2-kotlin:0.2.0")
         }
     }
 }

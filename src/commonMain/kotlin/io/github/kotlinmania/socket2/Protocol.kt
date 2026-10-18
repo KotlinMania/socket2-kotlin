@@ -1,4 +1,3 @@
-// port-lint: source lib.rs
 package io.github.kotlinmania.socket2
 
 import io.github.kotlinmania.libc.unix.IPPROTO_ICMP
@@ -10,17 +9,6 @@ import io.github.kotlinmania.libc.unix.linuxlike.IPPROTO_DCCP
 import io.github.kotlinmania.libc.unix.linuxlike.IPPROTO_MPTCP
 import io.github.kotlinmania.libc.unix.linuxlike.IPPROTO_SCTP
 import io.github.kotlinmania.libc.unix.linuxlike.IPPROTO_UDPLITE
-
-/**
- * Protocol specification used for creating sockets via [Socket.new].
- *
- * This is a wrapper around an integer which provides a nicer API in
- * addition to an injection point for documentation.
- *
- * This type is freely interconvertible with C's int type, however, if a raw
- * value needs to be provided.
- */
-public typealias Protocol = SocketProtocol
 
 public data class SocketProtocol(
     public val value: Int,

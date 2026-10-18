@@ -112,12 +112,12 @@ public data class SockAddr internal constructor(
         /**
          * Converts a [SocketAddrV4] into a [SockAddr].
          */
-        public fun from(addr: SocketAddrV4): SockAddr = addr.toSockAddr()
+        public fun from(addr: io.github.kotlinmania.socket2.SocketAddr.V4): SockAddr = addr.toSockAddr()
 
         /**
          * Converts a [SocketAddrV6] into a [SockAddr].
          */
-        public fun from(addr: SocketAddrV6): SockAddr = addr.toSockAddr()
+        public fun from(addr: io.github.kotlinmania.socket2.SocketAddr.V6): SockAddr = addr.toSockAddr()
 
         /**
          * Initialize a `SockAddr` by passing a zeroed storage and mutable length pointer
@@ -239,30 +239,30 @@ public data class SockAddr internal constructor(
     /**
      * Converts this address to a [SocketAddrV4] if it is in the `AF_INET` family.
      */
-    public fun asSocketIpv4(): SocketAddrV4? =
+    public fun asSocketIpv4(): io.github.kotlinmania.socket2.SocketAddr.V4? =
         when (val addr = asSocket()) {
-            is SocketAddrV4 -> addr
+            is io.github.kotlinmania.socket2.SocketAddr.V4 -> addr
             else -> null
         }
 
     /**
      * Upstream alias for [asSocketIpv4].
      */
-    public fun ipv4(): SocketAddrV4? = asSocketIpv4()
+    public fun ipv4(): io.github.kotlinmania.socket2.SocketAddr.V4? = asSocketIpv4()
 
     /**
      * Converts this address to a [SocketAddrV6] if it is in the `AF_INET6` family.
      */
-    public fun asSocketIpv6(): SocketAddrV6? =
+    public fun asSocketIpv6(): io.github.kotlinmania.socket2.SocketAddr.V6? =
         when (val addr = asSocket()) {
-            is SocketAddrV6 -> addr
+            is io.github.kotlinmania.socket2.SocketAddr.V6 -> addr
             else -> null
         }
 
     /**
      * Upstream alias for [asSocketIpv6].
      */
-    public fun ipv6(): SocketAddrV6? = asSocketIpv6()
+    public fun ipv6(): io.github.kotlinmania.socket2.SocketAddr.V6? = asSocketIpv6()
 
     override fun toString(): String = "SockAddr(family=${storage.ssFamily}, len=$length)"
 
@@ -330,21 +330,6 @@ public sealed class SocketAddr {
         }
     }
 }
-
-/**
- * Backward compatibility alias for [SocketAddr].
- */
-public typealias Socket2SocketAddress = SocketAddr
-
-/**
- * IPv4 socket address corresponding to Rust's `std::net::SocketAddrV4`.
- */
-public typealias SocketAddrV4 = SocketAddr.V4
-
-/**
- * IPv6 socket address corresponding to Rust's `std::net::SocketAddrV6`.
- */
-public typealias SocketAddrV6 = SocketAddr.V6
 
 /**
  * Constructs a `SockAddr` with the family `AF_UNIX` and the provided path.
