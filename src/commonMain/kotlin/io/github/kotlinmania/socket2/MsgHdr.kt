@@ -43,7 +43,7 @@ public class MsgHdr private constructor(
         val current = inner ?: throw IllegalStateException("MsgHdr already consumed")
         inner =
             current.copy(
-                msgName = COpaquePointer(addr.asStorage().storage.ssPad2),
+                msgName = COpaquePointer(addr.asStorage().storage.ssPad2.contentHashCode().toLong()),
                 msgNamelen = addr.len(),
             )
         return this
@@ -59,7 +59,7 @@ public class MsgHdr private constructor(
         val firstIov =
             bufs.firstOrNull()?.let { buf ->
                 Iovec(
-                    iovBase = COpaquePointer(buf),
+                    iovBase = COpaquePointer(buf.contentHashCode().toLong()),
                     iovLen = buf.size.toULong(),
                 )
             }
@@ -81,7 +81,7 @@ public class MsgHdr private constructor(
         val current = inner ?: throw IllegalStateException("MsgHdr already consumed")
         inner =
             current.copy(
-                msgControl = COpaquePointer(buf),
+                msgControl = COpaquePointer(buf.contentHashCode().toLong()),
                 msgControllen = buf.size.toUInt(),
             )
         return this
