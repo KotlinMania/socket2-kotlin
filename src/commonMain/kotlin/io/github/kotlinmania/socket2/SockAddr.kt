@@ -110,12 +110,12 @@ public data class SockAddr internal constructor(
         public fun from(addr: SocketAddr): SockAddr = addr.toSockAddr()
 
         /**
-         * Converts a [SocketAddrV4] into a [SockAddr].
+         * Converts a [SocketAddr.V4] into a [SockAddr].
          */
         public fun from(addr: io.github.kotlinmania.socket2.SocketAddr.V4): SockAddr = addr.toSockAddr()
 
         /**
-         * Converts a [SocketAddrV6] into a [SockAddr].
+         * Converts a [SocketAddr.V6] into a [SockAddr].
          */
         public fun from(addr: io.github.kotlinmania.socket2.SocketAddr.V6): SockAddr = addr.toSockAddr()
 
@@ -237,7 +237,7 @@ public data class SockAddr internal constructor(
     public fun asSocket(): SocketAddr? = asSocketPlatform()
 
     /**
-     * Converts this address to a [SocketAddrV4] if it is in the `AF_INET` family.
+     * Converts this address to a [SocketAddr.V4] if it is in the `AF_INET` family.
      */
     public fun asSocketIpv4(): io.github.kotlinmania.socket2.SocketAddr.V4? =
         when (val addr = asSocket()) {
@@ -251,7 +251,7 @@ public data class SockAddr internal constructor(
     public fun ipv4(): io.github.kotlinmania.socket2.SocketAddr.V4? = asSocketIpv4()
 
     /**
-     * Converts this address to a [SocketAddrV6] if it is in the `AF_INET6` family.
+     * Converts this address to a [SocketAddr.V6] if it is in the `AF_INET6` family.
      */
     public fun asSocketIpv6(): io.github.kotlinmania.socket2.SocketAddr.V6? =
         when (val addr = asSocket()) {

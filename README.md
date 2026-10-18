@@ -13,8 +13,8 @@ A pure Kotlin Multiplatform transliteration of Rust's battle-tested [`socket2`](
 
 ## Features
 
-- **Full Upstream Parity:** 100% public API parity with Rust `socket2` (131/131 Socket operations, full `Domain`, `Type`, `Protocol`, `SockAddr`, `SockRef`, `MsgHdr`, and `TcpKeepalive` support).
-- **Zero-Overhead Libc Bindings:** Strongly-typed constants (`Domain.IPV4`, `Type.STREAM`, `Protocol.TCP`) powered by direct zero-copy bindings to [`libc-kotlin:0.1.3`](https://github.com/KotlinMania/libc-kotlin).
+- **Full Upstream Parity:** 100% public API parity with Rust `socket2` (131/131 Socket operations, full `Domain`, `SocketType`, `SocketProtocol`, `SockAddr`, `SockRef`, `MsgHdr`, and `TcpKeepalive` support).
+- **Zero-Overhead Libc Bindings:** Strongly-typed constants (`Domain.IPV4`, `SocketType.STREAM`, `SocketProtocol.TCP`) powered by direct zero-copy bindings to [`libc-kotlin:0.1.3`](https://github.com/KotlinMania/libc-kotlin).
 - **True Multiplatform Support:** Runs on Apple Silicon / Intel, Linux, Windows MinGW, Android Native, JVM, Android ART, WebAssembly (Wasm-JS & WASI Preview 2 `wasi:sockets`), and JavaScript (Node.js & Browser).
 - **Swift Export Ready:** Out-of-the-box Swift Package Manager generation via Kotlin 2.4 Swift Export (`embedSwiftExportForXcode`), allowing seamless, native Swift imports.
 - **Advanced Socket Configuration:** Direct control over `SO_REUSEADDR`, `SO_KEEPALIVE`, `TCP_NODELAY`, `SO_LINGER`, buffer sizes, timeouts, multicasting (SSM, v4, v6), CPU affinity, and non-blocking cloexec flags.
@@ -66,15 +66,15 @@ kotlin {
 
 ```kotlin
 import io.github.kotlinmania.socket2.Domain
-import io.github.kotlinmania.socket2.Protocol
+import io.github.kotlinmania.socket2.SocketProtocol
 import io.github.kotlinmania.socket2.SockAddr
 import io.github.kotlinmania.socket2.Socket
 import io.github.kotlinmania.socket2.SocketAddr
-import io.github.kotlinmania.socket2.Type
+import io.github.kotlinmania.socket2.SocketType
 import kotlin.time.Duration.Companion.seconds
 
 // Create an IPv4 non-blocking TCP socket
-val server = Socket.new(Domain.IPV4, Type.STREAM.nonblocking(), Protocol.TCP)
+val server = Socket.new(Domain.IPV4, SocketType.STREAM.nonblocking(), SocketProtocol.TCP)
 
 // Fine-grained socket options
 server.setReuseAddress(true)
@@ -98,7 +98,7 @@ println("Client connected from: ${clientAddr.asSocketIpv4()}")
 ### 2. Connect with Timeout
 
 ```kotlin
-val client = Socket.new(Domain.IPV4, Type.STREAM, Protocol.TCP)
+val client = Socket.new(Domain.IPV4, SocketType.STREAM, SocketProtocol.TCP)
 val destination = SockAddr.from(SocketAddr.V4("93.184.216.34", 80))
 
 // Connect with a 5-second timeout
@@ -111,7 +111,7 @@ client.send(request)
 ### 3. UDP Datagram Messaging
 
 ```kotlin
-val udpSocket = Socket.new(Domain.IPV4, Type.DGRAM, Protocol.UDP)
+val udpSocket = Socket.new(Domain.IPV4, SocketType.DGRAM, SocketProtocol.UDP)
 val peerAddr = SockAddr.from(SocketAddr.V4("127.0.0.1", 9000))
 
 val payload = "Hello from KotlinMania!".encodeToByteArray()
@@ -125,7 +125,7 @@ println("Received $bytesReceived bytes from $sender")
 ### 4. Unix Domain Sockets (Local IPC)
 
 ```kotlin
-val unixSocket = Socket.new(Domain.UNIX, Type.STREAM, null)
+val unixSocket = Socket.new(Domain.UNIX, SocketType.STREAM, null)
 val socketPath = SockAddr.unix("/tmp/kotlinmania-ipc.sock")
 
 unixSocket.bind(socketPath)
@@ -135,7 +135,7 @@ unixSocket.listen(32)
 ### 5. Scatter-Gather (Vectored) I/O
 
 ```kotlin
-val header = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\n".encodeToByteArray()
+val header = "HTTP/1.1 200 OK\r\nContent-SocketType: text/plain\r\n\r\n".encodeToByteArray()
 val body = "Hello, World!".encodeToByteArray()
 
 // Write multiple buffers in a single syscall
